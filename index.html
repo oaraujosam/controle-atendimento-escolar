@@ -6,7 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Bootstrap CSS -->
-  https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
 
   <style>
     body {
@@ -173,1622 +176,1635 @@
 </head>
 <body>
 
-<!-- ==================== LOGIN ==================== -->
-<div id="loginContainer">
-  <div class="card" style="max-width: 420px; width: 100%; border-radius: 18px;">
-    <div class="card-body p-4">
-      <h4 class="mb-1 text-center">Acesso ao Sistema</h4>
-      <p class="text-muted text-center mb-4">
-        Informe seu usuário e senha para registrar e acompanhar os atendimentos.
-      </p>
-      <form id="formLogin">
-        <div class="mb-3">
-          <label for="loginUsuario" class="form-label">Usuário</label>
-          <input type="text" id="loginUsuario" class="form-control" required />
+  <!-- ==================== LOGIN ==================== -->
+  <div id="loginContainer">
+    <div class="card" style="max-width: 420px; width: 100%; border-radius: 18px;">
+      <div class="card-body p-4">
+        <h4 class="mb-1 text-center">Acesso ao Sistema</h4>
+        <p class="text-muted text-center mb-4">
+          Informe seu usuário e senha para registrar e acompanhar os atendimentos.
+        </p>
+        <form id="formLogin">
+          <div class="mb-3">
+            <label for="loginUsuario" class="form-label">Usuário</label>
+            <input type="text" id="loginUsuario" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label for="loginSenha" class="form-label">Senha</label>
+            <div class="input-group">
+              <input type="password" id="loginSenha" class="form-control" required />
+              <button type="button" class="btn btn-outline-secondary" id="btnToggleSenha">
+                👁
+              </button>
+            </div>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="manterLogin" />
+            <label class="form-check-label" for="manterLogin">
+              Manter login ativo neste dispositivo
+            </label>
+          </div>
+          <div class="mb-3">
+            <small id="hintMaster" class="text-muted">
+              Primeiro acesso: use<br />
+              <strong>Usuário:</strong> <code>master</code><br />
+              <strong>Senha:</strong> <code>123</code><br />
+              (o sistema cria o usuário Master automaticamente na base)
+            </small>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            Entrar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== APLICAÇÃO ==================== -->
+  <div id="appContainer" style="display: none;">
+    <div class="container py-4">
+      <!-- Cabeçalho -->
+      <div class="page-header mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+        <div>
+          <h1>Controle de Atendimentos - Secretaria</h1>
+          <p>Registro de atendimentos de responsáveis, acompanhamento por setor e relatórios diários.</p>
         </div>
-        <div class="mb-3">
-          <label for="loginSenha" class="form-label">Senha</label>
-          <div class="input-group">
-            <input type="password" id="loginSenha" class="form-control" required />
-            <button type="button" class="btn btn-outline-secondary" id="btnToggleSenha">
-              👁
+        <div class="mt-3 mt-md-0 text-md-end">
+          <div><strong>Usuário:</strong> <span id="infoUsuarioNome"></span></div>
+          <div class="small"><strong>Perfil:</strong> <span id="infoUsuarioPerfil"></span></div>
+          <div class="mt-2 d-flex gap-2 justify-content-end">
+            <button id="btnPerfil" class="btn btn-sm btn-outline-light">
+              Meu perfil
+            </button>
+            <button id="btnLogout" class="btn btn-sm btn-outline-light">
+              Sair
             </button>
           </div>
         </div>
-        <div class="form-check mb-3">
-          <input class="form-check-input" type="checkbox" id="manterLogin" />
-          <label class="form-check-label" for="manterLogin">
-            Manter login ativo neste dispositivo
-          </label>
+      </div>
+
+      <!-- Gestão administrativa (usuários, setores, alunos) -->
+      <div id="gestaoUsuariosCard" class="card mb-4" style="display: none;">
+        <div class="card-header bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center">
+          <div>
+            <strong>Gestão administrativa</strong>
+            <div class="small text-muted">Usuários, setores e base de alunos</div>
+          </div>
+          <button id="btnToggleGestaoDetalhes" class="btn btn-sm btn-outline-secondary">
+            Mostrar/ocultar detalhes
+          </button>
         </div>
-        <div class="mb-3">
-          <small id="hintMaster" class="text-muted">
-            Primeiro acesso: use<br />
-            <strong>Usuário:</strong> <code>master</code><br />
-            <strong>Senha:</strong> <code>123</code><br />
-            (o sistema cria o usuário Master automaticamente na base)
+        <div class="card-body" id="gestaoDetalhes" style="display:none;">
+          <div class="row g-3">
+            <!-- Form novo usuário -->
+            <div class="col-lg-4">
+              <h6 class="mb-2">Novo usuário</h6>
+              <form id="formNovoUsuario">
+                <div class="mb-2">
+                  <label for="novoUsername" class="form-label">Usuário (sem espaços)</label>
+                  <input type="text" id="novoUsername" class="form-control form-control-sm" required />
+                </div>
+                <div class="mb-2">
+                  <label for="novoSenha" class="form-label">Senha</label>
+                  <input type="password" id="novoSenha" class="form-control form-control-sm" required />
+                </div>
+                <div class="mb-2">
+                  <label for="novoNome" class="form-label">Nome completo</label>
+                  <input type="text" id="novoNome" class="form-control form-control-sm" required />
+                </div>
+                <div class="mb-2">
+                  <label for="novoPerfil" class="form-label">Perfil</label>
+                  <select id="novoPerfil" class="form-select form-select-sm" required>
+                    <option value="Secretaria">Secretaria</option>
+                    <option value="Coordenação">Coordenação</option>
+                    <option value="Direção">Direção</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Master">Master</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Permissões</label>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="novoPermRegistrar" checked />
+                    <label class="form-check-label" for="novoPermRegistrar">
+                      Registrar atendimentos
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="novoPermStatus" checked />
+                    <label class="form-check-label" for="novoPermStatus">
+                      Alterar status (pendente/resolvido)
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="novoPermRelatorio" checked />
+                    <label class="form-check-label" for="novoPermRelatorio">
+                      Gerar relatórios PDF / exportar
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="novoPermGerUsuarios" />
+                    <label class="form-check-label" for="novoPermGerUsuarios">
+                      Gerenciar usuários, setores e alunos
+                    </label>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-sm btn-success mt-2">
+                  Criar usuário
+                </button>
+              </form>
+            </div>
+
+            <!-- Lista de usuários (recolhível) -->
+            <div class="col-lg-8">
+              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <h6 class="mb-0">Usuários cadastrados</h6>
+                <button id="btnToggleTabelaUsuarios" class="btn btn-sm btn-outline-secondary">
+                  Mostrar/ocultar tabela
+                </button>
+              </div>
+              <div id="usuariosTabelaWrapper" style="display:none;">
+                <div class="table-responsive" style="max-height: 260px;">
+                  <table class="table table-sm align-middle">
+                    <thead>
+                      <tr>
+                        <th>Usuário</th>
+                        <th>Nome</th>
+                        <th>Perfil</th>
+                        <th>Ativo</th>
+                        <th>Permissões</th>
+                        <th>Nova senha</th>
+                        <th class="text-center">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbodyUsuarios">
+                      <!-- via JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4" />
+
+          <!-- Gestão de setores -->
+          <div class="row g-3">
+            <div class="col-lg-4">
+              <h6 class="mb-2">Gestão de setores</h6>
+              <form id="formNovoSetor">
+                <div class="mb-2">
+                  <label for="novoSetorNome" class="form-label">Nome do setor</label>
+                  <input type="text" id="novoSetorNome" class="form-control form-control-sm" placeholder="Ex.: Coordenação Fundamental II" />
+                </div>
+                <button type="submit" class="btn btn-sm btn-success mt-1">
+                  Adicionar setor
+                </button>
+              </form>
+            </div>
+            <div class="col-lg-8">
+              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <h6 class="mb-0">Setores cadastrados</h6>
+                <button id="btnToggleTabelaSetores" class="btn btn-sm btn-outline-secondary">
+                  Mostrar/ocultar tabela
+                </button>
+              </div>
+              <div id="setoresTabelaWrapper" style="display:none;">
+                <div class="table-responsive" style="max-height: 220px;">
+                  <table class="table table-sm align-middle">
+                    <thead>
+                      <tr>
+                        <th>Setor</th>
+                        <th>Ativo</th>
+                        <th class="text-center">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbodySetores">
+                      <!-- via JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4" />
+
+          <!-- Importação de alunos -->
+          <div class="row g-3">
+            <div class="col-lg-6">
+              <h6 class="mb-2">Importar lista de alunos (PDF ensalamento)</h6>
+              <p class="text-muted small mb-2">
+                Use o relatório oficial de ensalamento em PDF (como
+                <code>260203 - ENSALAMENTO - 03 FEVEREIRO 26.pdf</code>).
+                <br />
+                O sistema lê a série entre parênteses (ex.: <code>(EINFA03MA)</code>) e os nomes dos alunos,
+                salvando <strong>nome</strong> + <strong>código da série</strong> exatamente como no documento.
+              </p>
+              <button id="btnImportarAlunos" class="btn btn-sm btn-outline-primary">
+                Importar alunos (PDF ou JSON)
+              </button>
+              <input type="file" id="inputImportarAlunos" accept=".pdf,.json" class="d-none" />
+              <small class="text-muted d-block mt-2">
+                O PDF importado é salvo no Firebase Storage em <code>ensalamento/atual.pdf</code>.
+                Um novo envio substitui o anterior.
+              </small>
+            </div>
+            <div class="col-lg-6">
+              <h6 class="mb-2">Alunos cadastrados (auto-completar)</h6>
+              <small class="text-muted">
+                Ao digitar o nome no atendimento, aparecerão sugestões com nome e código de série (ex.:
+                <code>EINFA03MA</code>).
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtro de data e ações gerais -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label for="dataFiltro" class="form-label fw-semibold text-secondary">
+            Data do relatório / filtro
+          </label>
+          <input type="date" id="dataFiltro" class="form-control" />
+          <div class="form-text">
+            Por padrão, usa a data de hoje. Altere para ver outros dias.
+          </div>
+        </div>
+        <div class="col-md-8 d-flex align-items-end gap-2 flex-wrap justify-content-md-end">
+          <button id="btnExportar" class="btn btn-outline-primary">
+            Exportar dados do dia (.json)
+          </button>
+          <button id="btnImportar" class="btn btn-outline-secondary">
+            Importar dados (.json)
+          </button>
+          <input type="file" id="inputImportar" accept=".json" class="d-none" />
+          <small class="text-muted w-100 text-md-end">
+            Dados são salvos em tempo real no Firebase (nuvem).
           </small>
         </div>
-        <button type="submit" class="btn btn-primary w-100">
-          Entrar
-        </button>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== APLICAÇÃO ==================== -->
-<div id="appContainer" style="display: none;">
-  <div class="container py-4">
-    <!-- Cabeçalho -->
-    <div class="page-header mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-      <div>
-        <h1>Controle de Atendimentos - Secretaria</h1>
-        <p>Registro de atendimentos de responsáveis, acompanhamento por setor e relatórios diários.</p>
       </div>
-      <div class="mt-3 mt-md-0 text-md-end">
-        <div><strong>Usuário:</strong> <span id="infoUsuarioNome"></span></div>
-        <div class="small"><strong>Perfil:</strong> <span id="infoUsuarioPerfil"></span></div>
-        <div class="mt-2 d-flex gap-2 justify-content-end">
-          <button id="btnPerfil" class="btn btn-sm btn-outline-light">
-            Meu perfil
-          </button>
-          <button id="btnLogout" class="btn btn-sm btn-outline-light">
-            Sair
-          </button>
+
+      <!-- Lista de atendimentos + resumo -->
+      <div class="row g-4">
+        <div class="col-12">
+          <!-- Lista de atendimentos -->
+          <div class="card mb-3">
+            <div class="card-header bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom">
+              <div class="d-flex flex-column flex-md-row align-items-md-center gap-2">
+                <strong>Atendimentos do dia filtrado</strong>
+                <div class="d-flex align-items-center gap-2">
+                  <label for="filtroSetor" class="small text-muted mb-0">Setor:</label>
+                  <select id="filtroSetor" class="form-select form-select-sm" style="min-width: 160px;">
+                    <option value="Todos">Todos</option>
+                  </select>
+                </div>
+              </div>
+              <small id="contadorAtendimentos" class="text-muted mt-2 mt-md-0"></small>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle">
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Aluno</th>
+                      <th>Série</th>
+                      <th>Motivo</th>
+                      <th>Setor</th>
+                      <th>Plataforma</th>
+                      <th>Retorno</th>
+                      <th>Lançado por</th>
+                      <th>Status</th>
+                      <th class="text-center">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyAtendimentos">
+                    <!-- Linhas via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumo por setor -->
+          <div class="card">
+            <div class="card-header bg-white border-bottom">
+              <strong>Resumo por setor (demandas do dia selecionado)</strong>
+            </div>
+            <div class="card-body">
+              <div id="resumoSetoresVazio" class="text-muted">
+                Nenhum atendimento registrado para esta data.
+              </div>
+              <div id="resumoSetores" class="row g-3">
+                <!-- Cards de resumo via JS -->
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Gestão administrativa (usuários, setores, alunos) -->
-    <div id="gestaoUsuariosCard" class="card mb-4" style="display: none;">
-      <div class="card-header bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center">
-        <div>
-          <strong>Gestão administrativa</strong>
-          <div class="small text-muted">Usuários, setores e base de alunos</div>
-        </div>
-        <button id="btnToggleGestaoDetalhes" class="btn btn-sm btn-outline-secondary">
-          Mostrar/ocultar detalhes
-        </button>
-      </div>
-      <div class="card-body" id="gestaoDetalhes" style="display:none;">
-        <div class="row g-3">
-          <!-- Form novo usuário -->
-          <div class="col-lg-4">
-            <h6 class="mb-2">Novo usuário</h6>
-            <form id="formNovoUsuario">
-              <div class="mb-2">
-                <label for="novoUsername" class="form-label">Usuário (sem espaços)</label>
-                <input type="text" id="novoUsername" class="form-control form-control-sm" required />
+    <!-- Botão flutuante: Novo atendimento -->
+    <button
+      id="fabNovo"
+      class="fab"
+      type="button"
+      title="Novo atendimento"
+    >
+      <span>+</span>
+    </button>
+
+    <!-- Botão flutuante: Relatório PDF -->
+    <button
+      id="fabRelatorio"
+      class="fab"
+      type="button"
+      title="Gerar relatório em PDF"
+    >
+      <span>📄</span>
+    </button>
+
+    <!-- Modal Novo Atendimento -->
+    <div class="modal fade" id="modalNovoAtendimento" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Atendimento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formAtendimento">
+              <input type="hidden" id="atendimentoEditandoId" />
+              <div class="mb-3">
+                <label for="dataAtendimentoVisivel" class="form-label">Data do atendimento</label>
+                <input type="date" id="dataAtendimentoVisivel" class="form-control" />
+                <input type="hidden" id="dataAtendimento" />
+                <div class="form-text">Por padrão, usa a data de hoje. Só permite hoje ou datas futuras.</div>
               </div>
-              <div class="mb-2">
-                <label for="novoSenha" class="form-label">Senha</label>
-                <input type="password" id="novoSenha" class="form-control form-control-sm" required />
+
+              <div class="mb-3">
+                <label for="nomeAluno" class="form-label">Nome do aluno</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    id="nomeAluno"
+                    class="form-control"
+                    autocomplete="off"
+                    required
+                  />
+                  <!-- Lista de sugestões de alunos (autocomplete) -->
+                  <div
+                    id="sugestoesAlunos"
+                    class="list-group position-absolute w-100 shadow-sm"
+                    style="max-height: 220px; overflow-y: auto; z-index: 2000; display: none;"
+                  ></div>
+                </div>
+                <div class="form-text">
+                  Digite parte do nome para filtrar os alunos importados do ensalamento.
+                </div>
               </div>
-              <div class="mb-2">
-                <label for="novoNome" class="form-label">Nome completo</label>
-                <input type="text" id="novoNome" class="form-control form-control-sm" required />
+
+              <div class="mb-3">
+                <label for="serieAluno" class="form-label">Série (código)</label>
+                <input type="text" id="serieAluno" class="form-control" placeholder="Ex.: EINFA03MA" />
               </div>
-              <div class="mb-2">
-                <label for="novoPerfil" class="form-label">Perfil</label>
-                <select id="novoPerfil" class="form-select form-select-sm" required>
-                  <option value="Secretaria">Secretaria</option>
-                  <option value="Coordenação">Coordenação</option>
-                  <option value="Direção">Direção</option>
-                  <option value="Administrador">Administrador</option>
-                  <option value="Master">Master</option>
+
+              <div class="mb-3">
+                <label for="motivo" class="form-label">Motivo do contato</label>
+                <textarea id="motivo" class="form-control" rows="2" required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label for="setor" class="form-label">Setor responsável</label>
+                <select id="setor" class="form-select" required>
+                  <option value="">Sem setores cadastrados</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="plataforma" class="form-label">Plataforma de comunicação com o setor</label>
+                <select id="plataforma" class="form-select" required>
+                  <option value="">Selecione...</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="E-mail">E-mail</option>
+                  <option value="SMS">SMS</option>
+                  <option value="uTalk">uTalk</option>
+                  <option value="Telefone">Telefone</option>
+                  <option value="Presencial">Presencial</option>
                   <option value="Outro">Outro</option>
                 </select>
               </div>
-              <div class="mb-2">
-                <label class="form-label">Permissões</label>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="novoPermRegistrar" checked />
-                  <label class="form-check-label" for="novoPermRegistrar">
-                    Registrar atendimentos
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="novoPermStatus" checked />
-                  <label class="form-check-label" for="novoPermStatus">
-                    Alterar status (pendente/resolvido)
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="novoPermRelatorio" checked />
-                  <label class="form-check-label" for="novoPermRelatorio">
-                    Gerar relatórios PDF / exportar
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="novoPermGerUsuarios" />
-                  <label class="form-check-label" for="novoPermGerUsuarios">
-                    Gerenciar usuários, setores e alunos
-                  </label>
-                </div>
-              </div>
-              <button type="submit" class="btn btn-sm btn-success mt-2">
-                Criar usuário
-              </button>
-            </form>
-          </div>
 
-          <!-- Lista de usuários (recolhível) -->
-          <div class="col-lg-8">
-            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-              <h6 class="mb-0">Usuários cadastrados</h6>
-              <button id="btnToggleTabelaUsuarios" class="btn btn-sm btn-outline-secondary">
-                Mostrar/ocultar tabela
-              </button>
-            </div>
-            <div id="usuariosTabelaWrapper" style="display:none;">
-              <div class="table-responsive" style="max-height: 260px;">
-                <table class="table table-sm align-middle">
-                  <thead>
-                    <tr>
-                      <th>Usuário</th>
-                      <th>Nome</th>
-                      <th>Perfil</th>
-                      <th>Ativo</th>
-                      <th>Permissões</th>
-                      <th>Nova senha</th>
-                      <th class="text-center">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tbodyUsuarios">
-                    <!-- via JS -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <hr class="my-4" />
-
-        <!-- Gestão de setores -->
-        <div class="row g-3">
-          <div class="col-lg-4">
-            <h6 class="mb-2">Gestão de setores</h6>
-            <form id="formNovoSetor">
-              <div class="mb-2">
-                <label for="novoSetorNome" class="form-label">Nome do setor</label>
-                <input type="text" id="novoSetorNome" class="form-control form-control-sm" placeholder="Ex.: Coordenação Fundamental II" />
-              </div>
-              <button type="submit" class="btn btn-sm btn-success mt-1">
-                Adicionar setor
-              </button>
-            </form>
-          </div>
-          <div class="col-lg-8">
-            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-              <h6 class="mb-0">Setores cadastrados</h6>
-              <button id="btnToggleTabelaSetores" class="btn btn-sm btn-outline-secondary">
-                Mostrar/ocultar tabela
-              </button>
-            </div>
-            <div id="setoresTabelaWrapper" style="display:none;">
-              <div class="table-responsive" style="max-height: 220px;">
-                <table class="table table-sm align-middle">
-                  <thead>
-                    <tr>
-                      <th>Setor</th>
-                      <th>Ativo</th>
-                      <th class="text-center">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tbodySetores">
-                    <!-- via JS -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <hr class="my-4" />
-
-        <!-- Importação de alunos -->
-        <div class="row g-3">
-          <div class="col-lg-6">
-            <h6 class="mb-2">Importar lista de alunos (PDF ensalamento)</h6>
-            <p class="text-muted small mb-2">
-              Use o relatório oficial de ensalamento em PDF (como <code>260203 - ENSALAMENTO - 03 FEVEREIRO 26.pdf</code>).<br>
-              O sistema lê a série entre parênteses (ex.: <code>(EINFA03MA)</code>) e os nomes dos alunos, salvando<br>
-              <strong>nome</strong> + <strong>código da série</strong> exatamente como no documento.
-            </p>
-            <button id="btnImportarAlunos" class="btn btn-sm btn-outline-primary">
-              Importar alunos (PDF ou JSON)
-            </button>
-            <input type="file" id="inputImportarAlunos" accept=".pdf,.json" class="d-none" />
-            <small class="text-muted d-block mt-2">
-              O PDF importado é salvo no Firebase Storage em <code>ensalamento/atual.pdf</code>. Um novo envio substitui o anterior.
-            </small>
-          </div>
-          <div class="col-lg-6">
-            <h6 class="mb-2">Alunos cadastrados (auto-completar)</h6>
-            <small class="text-muted">
-              Ao digitar o nome no atendimento, aparecerão sugestões com nome e código de série (ex.: <code>EINFA03MA</code>).
-            </small>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Filtro de data e ações gerais -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-4">
-        <label for="dataFiltro" class="form-label fw-semibold text-secondary">
-          Data do relatório / filtro
-        </label>
-        <input type="date" id="dataFiltro" class="form-control" />
-        <div class="form-text">
-          Por padrão, usa a data de hoje. Altere para ver outros dias.
-        </div>
-      </div>
-      <div class="col-md-8 d-flex align-items-end gap-2 flex-wrap justify-content-md-end">
-        <button id="btnExportar" class="btn btn-outline-primary">
-          Exportar dados do dia (.json)
-        </button>
-        <button id="btnImportar" class="btn btn-outline-secondary">
-          Importar dados (.json)
-        </button>
-        <input type="file" id="inputImportar" accept=".json" class="d-none" />
-        <small class="text-muted w-100 text-md-end">
-          Dados são salvos em tempo real no Firebase (nuvem).
-        </small>
-      </div>
-    </div>
-
-    <!-- Lista de atendimentos + resumo -->
-    <div class="row g-4">
-      <div class="col-12">
-        <!-- Lista de atendimentos -->
-        <div class="card mb-3">
-          <div class="card-header bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom">
-            <div class="d-flex flex-column flex-md-row align-items-md-center gap-2">
-              <strong>Atendimentos do dia filtrado</strong>
-              <div class="d-flex align-items-center gap-2">
-                <label for="filtroSetor" class="small text-muted mb-0">Setor:</label>
-                <select id="filtroSetor" class="form-select form-select-sm" style="min-width: 160px;">
-                  <option value="Todos">Todos</option>
+              <div class="mb-3">
+                <label for="retorno" class="form-label">Retorno do setor</label>
+                <select id="retorno" class="form-select" required>
+                  <option value="Sem retorno">Sem retorno</option>
+                  <option value="Retorno recebido">Retorno recebido</option>
                 </select>
               </div>
-            </div>
-            <small id="contadorAtendimentos" class="text-muted mt-2 mt-md-0"></small>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-sm table-hover align-middle">
-                <thead>
-                  <tr>
-                    <th>Data</th>
-                    <th>Aluno</th>
-                    <th>Série</th>
-                    <th>Motivo</th>
-                    <th>Setor</th>
-                    <th>Plataforma</th>
-                    <th>Retorno</th>
-                    <th>Lançado por</th>
-                    <th>Status</th>
-                    <th class="text-center">Ações</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyAtendimentos">
-                  <!-- Linhas via JS -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
 
-        <!-- Resumo por setor -->
-        <div class="card">
-          <div class="card-header bg-white border-bottom">
-            <strong>Resumo por setor (demandas do dia selecionado)</strong>
+              <div class="mb-3">
+                <label for="status" class="form-label">Situação</label>
+                <select id="status" class="form-select" required>
+                  <option value="Pendente">Pendente</option>
+                  <option value="Resolvido">Resolvido</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="observacoes" class="form-label">Observações (opcional)</label>
+                <textarea id="observacoes" class="form-control" rows="2"></textarea>
+              </div>
+            </form>
           </div>
-          <div class="card-body">
-            <div id="resumoSetoresVazio" class="text-muted">
-              Nenhum atendimento registrado para esta data.
-            </div>
-            <div id="resumoSetores" class="row g-3">
-              <!-- Cards de resumo via JS -->
-            </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" id="btnSalvarAtendimento" class="btn btn-success">Salvar atendimento</button>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Botão flutuante: Novo atendimento -->
-  <button
-    id="fabNovo"
-    class="fab"
-    type="button"
-    title="Novo atendimento"
-  >
-    <span>+</span>
-  </button>
-
-  <!-- Botão flutuante: Relatório PDF -->
-  <button
-    id="fabRelatorio"
-    class="fab"
-    type="button"
-    title="Gerar relatório em PDF"
-  >
-    <span>📄</span>
-  </button>
-
-  <!-- Modal Novo Atendimento -->
-  <div class="modal fade" id="modalNovoAtendimento" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Atendimento</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-        <div class="modal-body">
-          <form id="formAtendimento">
-            <input type="hidden" id="atendimentoEditandoId" />
+    <!-- Modal Observação ao marcar resolvido -->
+    <div class="modal fade" id="modalObservacao" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Marcar atendimento como resolvido</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-2">
+              Você está marcando este atendimento como <strong>Resolvido</strong>.
+            </p>
             <div class="mb-3">
-              <label for="dataAtendimentoVisivel" class="form-label">Data do atendimento</label>
-              <input type="date" id="dataAtendimentoVisivel" class="form-control" />
-              <input type="hidden" id="dataAtendimento" />
-              <div class="form-text">Por padrão, usa a data de hoje. Só permite hoje ou datas futuras.</div>
-            </div>
-
-            <div class="mb-3">
-              <label for="nomeAluno" class="form-label">Nome do aluno</label>
-              <input type="text" id="nomeAluno" class="form-control" list="listaAlunos" required />
-              <datalist id="listaAlunos"></datalist>
-            </div>
-
-            <div class="mb-3">
-              <label for="serieAluno" class="form-label">Série (código)</label>
-              <input type="text" id="serieAluno" class="form-control" placeholder="Ex.: EINFA03MA" />
-            </div>
-
-            <div class="mb-3">
-              <label for="motivo" class="form-label">Motivo do contato</label>
-              <textarea id="motivo" class="form-control" rows="2" required></textarea>
-            </div>
-
-            <div class="mb-3">
-              <label for="setor" class="form-label">Setor responsável</label>
-              <select id="setor" class="form-select" required>
-                <option value="">Sem setores cadastrados</option>
-              </select>
-            </div>
-
-            <div class="mb-3">
-              <label for="plataforma" class="form-label">Plataforma de comunicação com o setor</label>
-              <select id="plataforma" class="form-select" required>
-                <option value="">Selecione...</option>
-                <option value="WhatsApp">WhatsApp</option>
-                <option value="E-mail">E-mail</option>
-                <option value="SMS">SMS</option>
-                <option value="uTalk">uTalk</option>
-                <option value="Telefone">Telefone</option>
-                <option value="Presencial">Presencial</option>
-                <option value="Outro">Outro</option>
-              </select>
-            </div>
-
-            <div class="mb-3">
-              <label for="retorno" class="form-label">Retorno do setor</label>
-              <select id="retorno" class="form-select" required>
+              <label for="resolucaoRetorno" class="form-label">Retorno do setor</label>
+              <select id="resolucaoRetorno" class="form-select">
                 <option value="Sem retorno">Sem retorno</option>
                 <option value="Retorno recebido">Retorno recebido</option>
               </select>
             </div>
-
             <div class="mb-3">
-              <label for="status" class="form-label">Situação</label>
-              <select id="status" class="form-select" required>
-                <option value="Pendente">Pendente</option>
-                <option value="Resolvido">Resolvido</option>
+              <label for="dataResolucao" class="form-label">Data da resolução</label>
+              <input type="date" id="dataResolucao" class="form-control" />
+              <div class="form-text">Por padrão, usa a data de hoje. Você pode ajustar se necessário.</div>
+            </div>
+            <label for="obsResolvido" class="form-label">Observação (opcional)</label>
+            <textarea
+              id="obsResolvido"
+              class="form-control"
+              rows="3"
+              placeholder="Ex.: Setor retornou por WhatsApp às 15h, combinado de enviar documento até amanhã."
+            ></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" id="btnSalvarObs" class="btn btn-success">Confirmar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Relatório (escolher data e setor) -->
+    <div class="modal fade" id="modalRelatorio" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Gerar relatório em PDF</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="relData" class="form-label">Data dos atendimentos</label>
+              <input type="date" id="relData" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label for="relSetor" class="form-label">Setor</label>
+              <select id="relSetor" class="form-select">
+                <option value="Todos">Todos</option>
               </select>
             </div>
-
-            <div class="mb-3">
-              <label for="observacoes" class="form-label">Observações (opcional)</label>
-              <textarea id="observacoes" class="form-control" rows="2"></textarea>
-            </div>
-          </form>
+            <small class="text-muted">
+              O relatório será gerado para a data e setor selecionados. Se escolher "Todos", serão inclusos todos os setores.
+            </small>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" id="btnGerarRelatorioConfirm" class="btn btn-danger">Gerar PDF</button>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" id="btnSalvarAtendimento" class="btn btn-success">Salvar atendimento</button>
+      </div>
+    </div>
+
+    <!-- Modal Perfil (alterar senha) -->
+    <div class="modal fade" id="modalPerfil" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Meu perfil</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formPerfil">
+              <div class="mb-3">
+                <label class="form-label">Usuário</label>
+                <input type="text" id="perfilUsername" class="form-control" disabled />
+              </div>
+              <div class="mb-3">
+                <label for="perfilNome" class="form-label">Nome completo</label>
+                <input type="text" id="perfilNome" class="form-control" />
+              </div>
+              <div class="mb-3">
+                <label for="perfilSenhaAtual" class="form-label">Senha atual</label>
+                <input type="password" id="perfilSenhaAtual" class="form-control" />
+              </div>
+              <div class="mb-3">
+                <label for="perfilSenhaNova" class="form-label">Nova senha</label>
+                <input type="password" id="perfilSenhaNova" class="form-control" />
+              </div>
+              <div class="mb-3">
+                <label for="perfilSenhaConfirma" class="form-label">Confirmar nova senha</label>
+                <input type="password" id="perfilSenhaConfirma" class="form-control" />
+              </div>
+            </form>
+            <small class="text-muted">
+              Deixe os campos de senha em branco se quiser alterar apenas o nome.
+            </small>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" id="btnSalvarPerfil" class="btn btn-primary">Salvar alterações</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Observação ao marcar resolvido -->
-  <div class="modal fade" id="modalObservacao" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Marcar atendimento como resolvido</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-        <div class="modal-body">
-          <p class="mb-2">
-            Você está marcando este atendimento como <strong>Resolvido</strong>.
-          </p>
-          <div class="mb-3">
-            <label for="resolucaoRetorno" class="form-label">Retorno do setor</label>
-            <select id="resolucaoRetorno" class="form-select">
-              <option value="Sem retorno">Sem retorno</option>
-              <option value="Retorno recebido">Retorno recebido</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="dataResolucao" class="form-label">Data da resolução</label>
-            <input type="date" id="dataResolucao" class="form-control" />
-            <div class="form-text">Por padrão, usa a data de hoje. Você pode ajustar se necessário.</div>
-          </div>
-          <label for="obsResolvido" class="form-label">Observação (opcional)</label>
-          <textarea
-            id="obsResolvido"
-            class="form-control"
-            rows="3"
-            placeholder="Ex.: Setor retornou por WhatsApp às 15h, combinado de enviar documento até amanhã."
-          ></textarea>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" id="btnSalvarObs" class="btn btn-success">Confirmar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Modal Relatório (escolher data e setor) -->
-  <div class="modal fade" id="modalRelatorio" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Gerar relatório em PDF</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="relData" class="form-label">Data dos atendimentos</label>
-            <input type="date" id="relData" class="form-control" />
-          </div>
-          <div class="mb-3">
-            <label for="relSetor" class="form-label">Setor</label>
-            <select id="relSetor" class="form-select">
-              <option value="Todos">Todos</option>
-            </select>
-          </div>
-          <small class="text-muted">
-            O relatório será gerado para a data e setor selecionados. Se escolher "Todos", serão inclusos todos os setores.
-          </small>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" id="btnGerarRelatorioConfirm" class="btn btn-danger">Gerar PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- jsPDF + AutoTable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
 
-  <!-- Modal Perfil (alterar senha) -->
-  <div class="modal fade" id="modalPerfil" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Meu perfil</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-        <div class="modal-body">
-          <form id="formPerfil">
-            <div class="mb-3">
-              <label class="form-label">Usuário</label>
-              <input type="text" id="perfilUsername" class="form-control" disabled />
-            </div>
-            <div class="mb-3">
-              <label for="perfilNome" class="form-label">Nome completo</label>
-              <input type="text" id="perfilNome" class="form-control" />
-            </div>
-            <div class="mb-3">
-              <label for="perfilSenhaAtual" class="form-label">Senha atual</label>
-              <input type="password" id="perfilSenhaAtual" class="form-control" />
-            </div>
-            <div class="mb-3">
-              <label for="perfilSenhaNova" class="form-label">Nova senha</label>
-              <input type="password" id="perfilSenhaNova" class="form-control" />
-            </div>
-            <div class="mb-3">
-              <label for="perfilSenhaConfirma" class="form-label">Confirmar nova senha</label>
-              <input type="password" id="perfilSenhaConfirma" class="form-control" />
-            </div>
-          </form>
-          <small class="text-muted">
-            Deixe os campos de senha em branco se quiser alterar apenas o nome.
-          </small>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" id="btnSalvarPerfil" class="btn btn-primary">Salvar alterações</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+  <!-- PDF.js para leitura de PDFs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
-<!-- Bootstrap JS -->
-https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js</script>
+  <!-- Firebase + App (ES Module) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      setDoc,
+      getDoc,
+      addDoc,
+      updateDoc,
+      onSnapshot,
+      getDocs,
+      query,
+      where,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    import {
+      getStorage,
+      ref as storageRef,
+      uploadBytes
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
-<!-- jsPDF + AutoTable -->
-https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js</script>
-https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js</script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCcOEXLRlUAE1LDqCGY4gXDzR-VrEwWxZY",
+      authDomain: "atendimento-escolar.firebaseapp.com",
+      projectId: "atendimento-escolar",
+      storageBucket: "atendimento-escolar.firebasestorage.app",
+      messagingSenderId: "528964804496",
+      appId: "1:528964804496:web:4b0159e33fdf0a03ba5d15",
+      measurementId: "G-N9TP4Z1Q3M"
+    };
 
-<!-- PDF.js para leitura de PDFs -->
-https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js</script>
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
-<!-- Firebase + App (ES Module) -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    doc,
-    setDoc,
-    getDoc,
-    addDoc,
-    updateDoc,
-    onSnapshot,
-    getDocs,
-    query,
-    where,
-    deleteDoc
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-  import {
-    getStorage,
-    ref as storageRef,
-    uploadBytes
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCcOEXLRlUAE1LDqCGY4gXDzR-VrEwWxZY",
-    authDomain: "atendimento-escolar.firebaseapp.com",
-    projectId: "atendimento-escolar",
-    storageBucket: "atendimento-escolar.firebasestorage.app",
-    messagingSenderId: "528964804496",
-    appId: "1:528964804496:web:4b0159e33fdf0a03ba5d15",
-    measurementId: "G-N9TP4Z1Q3M"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const storage = getStorage(app);
-
-  const pdfjsLib = window["pdfjsLib"];
-  if (pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
-  }
-
-  const STORAGE_KEY_USUARIO = "atendimentos_usuario_logado";
-  const STORAGE_KEY_MANTER = "atendimentos_manter_login";
-  let usuarioLogado = null;
-  let todosAtendimentos = [];
-  let unsubscribeAtendimentos = null;
-  let unsubscribeUsuarios = null;
-  let unsubscribeSetores = null;
-  let unsubscribeAlunos = null;
-  let atendimentoEmAlteracaoId = null;
-  let listaSetores = [];
-  let listaAlunos = [];
-
-  function getHojeISO() {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  function formatarDataBR(iso) {
-    if (!iso) return "";
-    const [ano, mes, dia] = iso.split("-");
-    return `${dia}/${mes}/${ano}`;
-  }
-
-  function getDataHoraBR() {
-    const d = new Date();
-    const dia = String(d.getDate()).padStart(2, "0");
-    const mes = String(d.getMonth() + 1).padStart(2, "0");
-    const ano = d.getFullYear();
-    const hora = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    return `${dia}/${mes}/${ano} ${hora}:${min}`;
-  }
-
-  async function carregarUsuarioLogadoLocal() {
-    const manter = localStorage.getItem(STORAGE_KEY_MANTER) === "true";
-    if (!manter) {
-      localStorage.removeItem(STORAGE_KEY_USUARIO);
-      return null;
+    const pdfjsLib = window["pdfjsLib"];
+    if (pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
     }
-    const username = localStorage.getItem(STORAGE_KEY_USUARIO);
-    if (!username) return null;
-    try {
+
+    const STORAGE_KEY_USUARIO = "atendimentos_usuario_logado";
+    const STORAGE_KEY_MANTER = "atendimentos_manter_login";
+    let usuarioLogado = null;
+    let todosAtendimentos = [];
+    let unsubscribeAtendimentos = null;
+    let unsubscribeUsuarios = null;
+    let unsubscribeSetores = null;
+    let unsubscribeAlunos = null;
+    let atendimentoEmAlteracaoId = null;
+    let listaSetores = [];
+    let listaAlunos = [];
+
+    function getHojeISO() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function formatarDataBR(iso) {
+      if (!iso) return "";
+      const [ano, mes, dia] = iso.split("-");
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    function getDataHoraBR() {
+      const d = new Date();
+      const dia = String(d.getDate()).padStart(2, "0");
+      const mes = String(d.getMonth() + 1).padStart(2, "0");
+      const ano = d.getFullYear();
+      const hora = String(d.getHours()).padStart(2, "0");
+      const min = String(d.getMinutes()).padStart(2, "0");
+      return `${dia}/${mes}/${ano} ${hora}:${min}`;
+    }
+
+    async function carregarUsuarioLogadoLocal() {
+      const manter = localStorage.getItem(STORAGE_KEY_MANTER) === "true";
+      if (!manter) {
+        localStorage.removeItem(STORAGE_KEY_USUARIO);
+        return null;
+      }
+      const username = localStorage.getItem(STORAGE_KEY_USUARIO);
+      if (!username) return null;
+      try {
+        const ref = doc(db, "usuarios", username);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          localStorage.removeItem(STORAGE_KEY_USUARIO);
+          return null;
+        }
+        const data = snap.data();
+        if (data.ativo === false) {
+          localStorage.removeItem(STORAGE_KEY_USUARIO);
+          return null;
+        }
+        usuarioLogado = {
+          username,
+          nome: data.nome,
+          perfil: data.perfil,
+          permissoes: data.permissoes || {}
+        };
+        return usuarioLogado;
+      } catch (e) {
+        console.error("Erro ao carregar usuário logado:", e);
+        return null;
+      }
+    }
+
+    async function fazerLogin(username, senha) {
       const ref = doc(db, "usuarios", username);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        localStorage.removeItem(STORAGE_KEY_USUARIO);
-        return null;
+      let snap = await getDoc(ref);
+
+      // Criação automática do usuário master
+      if (!snap.exists() && username === "master" && senha === "123") {
+        const novoMaster = {
+          nome: "Master",
+          perfil: "Master",
+          senha: "123",
+          ativo: true,
+          permissoes: {
+            podeRegistrarAtendimento: true,
+            podeAlterarStatus: true,
+            podeGerarRelatorio: true,
+            podeGerenciarUsuarios: true
+          }
+        };
+        await setDoc(ref, novoMaster);
+        snap = await getDoc(ref);
       }
+
+      if (!snap.exists()) return false;
       const data = snap.data();
+      if (data.senha !== senha) return false;
       if (data.ativo === false) {
-        localStorage.removeItem(STORAGE_KEY_USUARIO);
-        return null;
+        alert("Usuário inativo. Procure o administrador.");
+        return false;
       }
+
       usuarioLogado = {
         username,
         nome: data.nome,
         perfil: data.perfil,
-        permissoes: data.permissoes || {}
+        permissoes:
+          data.permissoes || {
+            podeRegistrarAtendimento: true,
+            podeAlterarStatus: true,
+            podeGerarRelatorio: true,
+            podeGerenciarUsuarios: data.perfil === "Master"
+          }
       };
-      return usuarioLogado;
-    } catch (e) {
-      console.error("Erro ao carregar usuário logado:", e);
-      return null;
-    }
-  }
-
-  async function fazerLogin(username, senha) {
-    const ref = doc(db, "usuarios", username);
-    let snap = await getDoc(ref);
-
-    if (!snap.exists() && username === "master" && senha === "123") {
-      const novoMaster = {
-        nome: "Master",
-        perfil: "Master",
-        senha: "123",
-        ativo: true,
-        permissoes: {
-          podeRegistrarAtendimento: true,
-          podeAlterarStatus: true,
-          podeGerarRelatorio: true,
-          podeGerenciarUsuarios: true
-        }
-      };
-      await setDoc(ref, novoMaster);
-      snap = await getDoc(ref);
+      return true;
     }
 
-    if (!snap.exists()) return false;
-    const data = snap.data();
-    if (data.senha !== senha) return false;
-    if (data.ativo === false) {
-      alert("Usuário inativo. Procure o administrador.");
-      return false;
+    function atualizarHeaderUsuario() {
+      if (!usuarioLogado) return;
+      document.getElementById("infoUsuarioNome").innerText = usuarioLogado.nome;
+      document.getElementById("infoUsuarioPerfil").innerText =
+        usuarioLogado.perfil;
     }
 
-    usuarioLogado = {
-      username,
-      nome: data.nome,
-      perfil: data.perfil,
-      permissoes:
-        data.permissoes || {
-          podeRegistrarAtendimento: true,
-          podeAlterarStatus: true,
-          podeGerarRelatorio: true,
-          podeGerenciarUsuarios: data.perfil === "Master"
-        }
-    };
-    return true;
-  }
+    function aplicarPermissoesUI() {
+      const fabNovo = document.getElementById("fabNovo");
+      const fabRelatorio = document.getElementById("fabRelatorio");
+      const gestaoCard = document.getElementById("gestaoUsuariosCard");
 
-  function atualizarHeaderUsuario() {
-    if (!usuarioLogado) return;
-    document.getElementById("infoUsuarioNome").innerText = usuarioLogado.nome;
-    document.getElementById("infoUsuarioPerfil").innerText =
-      usuarioLogado.perfil;
-  }
-
-  function aplicarPermissoesUI() {
-    const fabNovo = document.getElementById("fabNovo");
-    const fabRelatorio = document.getElementById("fabRelatorio");
-    const gestaoCard = document.getElementById("gestaoUsuariosCard");
-
-    if (!usuarioLogado) {
-      fabNovo.style.display = "none";
-      fabRelatorio.style.display = "none";
-      gestaoCard.style.display = "none";
-      return;
-    }
-
-    const perms = usuarioLogado.permissoes || {};
-    fabNovo.style.display = perms.podeRegistrarAtendimento ? "flex" : "none";
-    fabRelatorio.style.display = perms.podeGerarRelatorio ? "flex" : "none";
-    gestaoCard.style.display = perms.podeGerenciarUsuarios ? "block" : "none";
-  }
-
-  function exibirApp() {
-    document.getElementById("loginContainer").style.display = "none";
-    document.getElementById("appContainer").style.display = "block";
-    atualizarHeaderUsuario();
-    aplicarPermissoesUI();
-  }
-
-  function exibirLogin() {
-    document.getElementById("loginContainer").style.display = "flex";
-    document.getElementById("appContainer").style.display = "none";
-  }
-
-  function iniciarListenerAtendimentos() {
-    if (unsubscribeAtendimentos) {
-      unsubscribeAtendimentos();
-      unsubscribeAtendimentos = null;
-    }
-    const ref = collection(db, "atendimentos");
-    unsubscribeAtendimentos = onSnapshot(
-      ref,
-      (snapshot) => {
-        todosAtendimentos = [];
-        snapshot.forEach((docSnap) => {
-          todosAtendimentos.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        renderizarAtendimentos();
-        renderizarResumoSetores();
-      },
-      (error) => {
-        console.error("Erro no listener de atendimentos:", error);
+      if (!usuarioLogado) {
+        fabNovo.style.display = "none";
+        fabRelatorio.style.display = "none";
+        gestaoCard.style.display = "none";
+        return;
       }
-    );
-  }
 
-  function iniciarListenerUsuarios() {
-    if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) return;
-    if (unsubscribeUsuarios) {
-      unsubscribeUsuarios();
-      unsubscribeUsuarios = null;
+      const perms = usuarioLogado.permissoes || {};
+      fabNovo.style.display = perms.podeRegistrarAtendimento ? "flex" : "none";
+      fabRelatorio.style.display = perms.podeGerarRelatorio ? "flex" : "none";
+      gestaoCard.style.display = perms.podeGerenciarUsuarios ? "block" : "none";
     }
-    const usuariosRef = collection(db, "usuarios");
-    unsubscribeUsuarios = onSnapshot(
-      usuariosRef,
-      (snapshot) => {
-        const tbody = document.getElementById("tbodyUsuarios");
-        tbody.innerHTML = "";
-        snapshot.forEach((docSnap) => {
-          const username = docSnap.id;
-          const u = docSnap.data();
 
-          const tr = document.createElement("tr");
-          tr.dataset.username = username;
+    function exibirApp() {
+      document.getElementById("loginContainer").style.display = "none";
+      document.getElementById("appContainer").style.display = "block";
+      atualizarHeaderUsuario();
+      aplicarPermissoesUI();
+    }
 
-          const tdUser = document.createElement("td");
-          tdUser.textContent = username;
-          tr.appendChild(tdUser);
+    function exibirLogin() {
+      document.getElementById("loginContainer").style.display = "flex";
+      document.getElementById("appContainer").style.display = "none";
+    }
 
-          const tdNome = document.createElement("td");
-          tdNome.innerHTML = `<input type="text" class="form-control form-control-sm" id="nome-${username}" value="${
-            u.nome || ""
-          }">`;
-          tr.appendChild(tdNome);
-
-          const tdPerfil = document.createElement("td");
-          const perfis = [
-            "Secretaria",
-            "Coordenação",
-            "Direção",
-            "Administrador",
-            "Master",
-            "Outro"
-          ];
-          let optionsHtml = "";
-          perfis.forEach((p) => {
-            const sel = u.perfil === p ? "selected" : "";
-            optionsHtml += `<option value="${p}" ${sel}>${p}</option>`;
+    function iniciarListenerAtendimentos() {
+      if (unsubscribeAtendimentos) {
+        unsubscribeAtendimentos();
+        unsubscribeAtendimentos = null;
+      }
+      const ref = collection(db, "atendimentos");
+      unsubscribeAtendimentos = onSnapshot(
+        ref,
+        (snapshot) => {
+          todosAtendimentos = [];
+          snapshot.forEach((docSnap) => {
+            todosAtendimentos.push({ id: docSnap.id, ...docSnap.data() });
           });
-          tdPerfil.innerHTML = `<select class="form-select form-select-sm" id="perfil-${username}">${optionsHtml}</select>`;
-          tr.appendChild(tdPerfil);
-
-          const tdAtivo = document.createElement("td");
-          tdAtivo.className = "text-center";
-          const ativoChecked = u.ativo === false ? "" : "checked";
-          tdAtivo.innerHTML = `<input type="checkbox" class="form-check-input" id="ativo-${username}" ${ativoChecked}>`;
-          tr.appendChild(tdAtivo);
-
-          const tdPerms = document.createElement("td");
-          const perms = u.permissoes || {};
-          tdPerms.innerHTML = `
-            <div class="d-flex flex-column gap-1 small">
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" id="permReg-${username}" ${
-            perms.podeRegistrarAtendimento ? "checked" : ""
-          }>
-                <label class="form-check-label" for="permReg-${username}">Registrar</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" id="permStatus-${username}" ${
-            perms.podeAlterarStatus ? "checked" : ""
-          }>
-                <label class="form-check-label" for="permStatus-${username}">Status</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" id="permRel-${username}" ${
-            perms.podeGerarRelatorio ? "checked" : ""
-          }>
-                <label class="form-check-label" for="permRel-${username}">Relatório</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" id="permUsuarios-${username}" ${
-            perms.podeGerenciarUsuarios ? "checked" : ""
-          }>
-                <label class="form-check-label" for="permUsuarios-${username}">Usuários/Setores</label>
-              </div>
-            </div>
-          `;
-          tr.appendChild(tdPerms);
-
-          const tdSenha = document.createElement("td");
-          tdSenha.innerHTML = `<input type="password" class="form-control form-control-sm" id="novaSenha-${username}" placeholder="Nova senha" />`;
-          tr.appendChild(tdSenha);
-
-          const tdAcoes = document.createElement("td");
-          tdAcoes.className = "text-center";
-          tdAcoes.innerHTML = `
-            <div class="btn-group btn-group-sm">
-              <button class="btn btn-outline-primary" data-username="${username}" data-action="salvar">Salvar</button>
-              <button class="btn btn-outline-danger" data-username="${username}" data-action="excluir">Excluir</button>
-            </div>
-          `;
-          tr.appendChild(tdAcoes);
-
-          tbody.appendChild(tr);
-        });
-      },
-      (error) => {
-        console.error("Erro no listener de usuários:", error);
-      }
-    );
-  }
-
-  function iniciarListenerSetores() {
-    if (unsubscribeSetores) {
-      unsubscribeSetores();
-      unsubscribeSetores = null;
+          renderizarAtendimentos();
+          renderizarResumoSetores();
+        },
+        (error) => {
+          console.error("Erro no listener de atendimentos:", error);
+        }
+      );
     }
-    const setoresRef = collection(db, "setores");
-    unsubscribeSetores = onSnapshot(
-      setoresRef,
-      (snapshot) => {
-        listaSetores = [];
-        const tbody = document.getElementById("tbodySetores");
-        tbody.innerHTML = "";
 
-        snapshot.forEach((docSnap) => {
-          const id = docSnap.id;
-          const s = docSnap.data();
-          listaSetores.push({ id, ...s });
-
-          const tr = document.createElement("tr");
-          tr.dataset.id = id;
-
-          const tdNome = document.createElement("td");
-          tdNome.innerHTML = `<input type="text" class="form-control form-control-sm" id="setorNome-${id}" value="${
-            s.nome || ""
-          }">`;
-          tr.appendChild(tdNome);
-
-          const tdAtivo = document.createElement("td");
-          tdAtivo.className = "text-center";
-          const ativoChecked = s.ativo === false ? "" : "checked";
-          tdAtivo.innerHTML = `<input type="checkbox" class="form-check-input" id="setorAtivo-${id}" ${ativoChecked}>`;
-          tr.appendChild(tdAtivo);
-
-          const tdAcoes = document.createElement("td");
-          tdAcoes.className = "text-center";
-          tdAcoes.innerHTML = `
-            <div class="btn-group btn-group-sm">
-              <button class="btn btn-outline-primary" data-setor-id="${id}" data-action="salvar">Salvar</button>
-              <button class="btn btn-outline-danger" data-setor-id="${id}" data-action="excluir">Excluir</button>
-            </div>
-          `;
-          tr.appendChild(tdAcoes);
-
-          tbody.appendChild(tr);
-        });
-
-        atualizarSelectsSetores();
-      },
-      (error) => {
-        console.error("Erro no listener de setores:", error);
+    function iniciarListenerUsuarios() {
+      if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) return;
+      if (unsubscribeUsuarios) {
+        unsubscribeUsuarios();
+        unsubscribeUsuarios = null;
       }
-    );
-  }
+      const usuariosRef = collection(db, "usuarios");
+      unsubscribeUsuarios = onSnapshot(
+        usuariosRef,
+        (snapshot) => {
+          const tbody = document.getElementById("tbodyUsuarios");
+          tbody.innerHTML = "";
+          snapshot.forEach((docSnap) => {
+            const username = docSnap.id;
+            const u = docSnap.data();
 
-  function iniciarListenerAlunos() {
-    if (unsubscribeAlunos) {
-      unsubscribeAlunos();
-      unsubscribeAlunos = null;
+            const tr = document.createElement("tr");
+            tr.dataset.username = username;
+
+            const tdUser = document.createElement("td");
+            tdUser.textContent = username;
+            tr.appendChild(tdUser);
+
+            const tdNome = document.createElement("td");
+            tdNome.innerHTML = `<input type="text" class="form-control form-control-sm" id="nome-${username}" value="${
+              u.nome || ""
+            }">`;
+            tr.appendChild(tdNome);
+
+            const tdPerfil = document.createElement("td");
+            const perfis = [
+              "Secretaria",
+              "Coordenação",
+              "Direção",
+              "Administrador",
+              "Master",
+              "Outro"
+            ];
+            let optionsHtml = "";
+            perfis.forEach((p) => {
+              const sel = u.perfil === p ? "selected" : "";
+              optionsHtml += `<option value="${p}" ${sel}>${p}</option>`;
+            });
+            tdPerfil.innerHTML = `<select class="form-select form-select-sm" id="perfil-${username}">${optionsHtml}</select>`;
+            tr.appendChild(tdPerfil);
+
+            const tdAtivo = document.createElement("td");
+            tdAtivo.className = "text-center";
+            const ativoChecked = u.ativo === false ? "" : "checked";
+            tdAtivo.innerHTML = `<input type="checkbox" class="form-check-input" id="ativo-${username}" ${ativoChecked}>`;
+            tr.appendChild(tdAtivo);
+
+            const tdPerms = document.createElement("td");
+            const perms = u.permissoes || {};
+            tdPerms.innerHTML = `
+              <div class="d-flex flex-column gap-1 small">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="permReg-${username}" ${
+              perms.podeRegistrarAtendimento ? "checked" : ""
+            }>
+                  <label class="form-check-label" for="permReg-${username}">Registrar</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="permStatus-${username}" ${
+              perms.podeAlterarStatus ? "checked" : ""
+            }>
+                  <label class="form-check-label" for="permStatus-${username}">Status</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="permRel-${username}" ${
+              perms.podeGerarRelatorio ? "checked" : ""
+            }>
+                  <label class="form-check-label" for="permRel-${username}">Relatório</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="permUsuarios-${username}" ${
+              perms.podeGerenciarUsuarios ? "checked" : ""
+            }>
+                  <label class="form-check-label" for="permUsuarios-${username}">Usuários/Setores</label>
+                </div>
+              </div>
+            `;
+            tr.appendChild(tdPerms);
+
+            const tdSenha = document.createElement("td");
+            tdSenha.innerHTML = `<input type="password" class="form-control form-control-sm" id="novaSenha-${username}" placeholder="Nova senha" />`;
+            tr.appendChild(tdSenha);
+
+            const tdAcoes = document.createElement("td");
+            tdAcoes.className = "text-center";
+            tdAcoes.innerHTML = `
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-primary" data-username="${username}" data-action="salvar">Salvar</button>
+                <button class="btn btn-outline-danger" data-username="${username}" data-action="excluir">Excluir</button>
+              </div>
+            `;
+            tr.appendChild(tdAcoes);
+
+            tbody.appendChild(tr);
+          });
+        },
+        (error) => {
+          console.error("Erro no listener de usuários:", error);
+        }
+      );
     }
-    const alunosRef = collection(db, "alunos");
-    unsubscribeAlunos = onSnapshot(
-      alunosRef,
-      (snapshot) => {
-        listaAlunos = [];
-        snapshot.forEach((docSnap) => {
-          listaAlunos.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        renderizarDatalistAlunos();
-      },
-      (error) => {
-        console.error("Erro no listener de alunos:", error);
+
+    function iniciarListenerSetores() {
+      if (unsubscribeSetores) {
+        unsubscribeSetores();
+        unsubscribeSetores = null;
       }
-    );
-  }
+      const setoresRef = collection(db, "setores");
+      unsubscribeSetores = onSnapshot(
+        setoresRef,
+        (snapshot) => {
+          listaSetores = [];
+          const tbody = document.getElementById("tbodySetores");
+          tbody.innerHTML = "";
 
-  function atualizarSelectsSetores() {
-    const setorSelect = document.getElementById("setor");
-    const filtroSetor = document.getElementById("filtroSetor");
-    const relSetor = document.getElementById("relSetor");
+          snapshot.forEach((docSnap) => {
+            const id = docSnap.id;
+            const s = docSnap.data();
+            listaSetores.push({ id, ...s });
 
-    const setoresAtivos = listaSetores.filter((s) => s.ativo !== false);
+            const tr = document.createElement("tr");
+            tr.dataset.id = id;
 
-    setorSelect.innerHTML = "";
-    if (setoresAtivos.length === 0) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "Sem setores cadastrados";
-      setorSelect.appendChild(opt);
-    } else {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "Selecione...";
-      setorSelect.appendChild(opt);
+            const tdNome = document.createElement("td");
+            tdNome.innerHTML = `<input type="text" class="form-control form-control-sm" id="setorNome-${id}" value="${
+              s.nome || ""
+            }">`;
+            tr.appendChild(tdNome);
+
+            const tdAtivo = document.createElement("td");
+            tdAtivo.className = "text-center";
+            const ativoChecked = s.ativo === false ? "" : "checked";
+            tdAtivo.innerHTML = `<input type="checkbox" class="form-check-input" id="setorAtivo-${id}" ${ativoChecked}>`;
+            tr.appendChild(tdAtivo);
+
+            const tdAcoes = document.createElement("td");
+            tdAcoes.className = "text-center";
+            tdAcoes.innerHTML = `
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-primary" data-setor-id="${id}" data-action="salvar">Salvar</button>
+                <button class="btn btn-outline-danger" data-setor-id="${id}" data-action="excluir">Excluir</button>
+              </div>
+            `;
+            tr.appendChild(tdAcoes);
+
+            tbody.appendChild(tr);
+          });
+
+          atualizarSelectsSetores();
+        },
+        (error) => {
+          console.error("Erro no listener de setores:", error);
+        }
+      );
+    }
+
+    function iniciarListenerAlunos() {
+      if (unsubscribeAlunos) {
+        unsubscribeAlunos();
+        unsubscribeAlunos = null;
+      }
+      const alunosRef = collection(db, "alunos");
+      unsubscribeAlunos = onSnapshot(
+        alunosRef,
+        (snapshot) => {
+          listaAlunos = [];
+          snapshot.forEach((docSnap) => {
+            listaAlunos.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          // Autocomplete usa listaAlunos diretamente
+        },
+        (error) => {
+          console.error("Erro no listener de alunos:", error);
+        }
+      );
+    }
+
+    function atualizarSelectsSetores() {
+      const setorSelect = document.getElementById("setor");
+      const filtroSetor = document.getElementById("filtroSetor");
+      const relSetor = document.getElementById("relSetor");
+
+      const setoresAtivos = listaSetores.filter((s) => s.ativo !== false);
+
+      setorSelect.innerHTML = "";
+      if (setoresAtivos.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Sem setores cadastrados";
+        setorSelect.appendChild(opt);
+      } else {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Selecione...";
+        setorSelect.appendChild(opt);
+        setoresAtivos.forEach((s) => {
+          const o = document.createElement("option");
+          o.value = s.nome;
+          o.textContent = s.nome;
+          setorSelect.appendChild(o);
+        });
+      }
+
+      filtroSetor.innerHTML = "";
+      const optTodos = document.createElement("option");
+      optTodos.value = "Todos";
+      optTodos.textContent = "Todos";
+      filtroSetor.appendChild(optTodos);
       setoresAtivos.forEach((s) => {
         const o = document.createElement("option");
         o.value = s.nome;
         o.textContent = s.nome;
-        setorSelect.appendChild(o);
+        filtroSetor.appendChild(o);
+      });
+
+      relSetor.innerHTML = "";
+      const optTodos2 = document.createElement("option");
+      optTodos2.value = "Todos";
+      optTodos2.textContent = "Todos";
+      relSetor.appendChild(optTodos2);
+      setoresAtivos.forEach((s) => {
+        const o = document.createElement("option");
+        o.value = s.nome;
+        o.textContent = s.nome;
+        relSetor.appendChild(o);
       });
     }
 
-    filtroSetor.innerHTML = "";
-    const optTodos = document.createElement("option");
-    optTodos.value = "Todos";
-    optTodos.textContent = "Todos";
-    filtroSetor.appendChild(optTodos);
-    setoresAtivos.forEach((s) => {
-      const o = document.createElement("option");
-      o.value = s.nome;
-      o.textContent = s.nome;
-      filtroSetor.appendChild(o);
-    });
+    function renderizarAtendimentos() {
+      const tbody = document.getElementById("tbodyAtendimentos");
+      tbody.innerHTML = "";
 
-    relSetor.innerHTML = "";
-    const optTodos2 = document.createElement("option");
-    optTodos2.value = "Todos";
-    optTodos2.textContent = "Todos";
-    relSetor.appendChild(optTodos2);
-    setoresAtivos.forEach((s) => {
-      const o = document.createElement("option");
-      o.value = s.nome;
-      o.textContent = s.nome;
-      relSetor.appendChild(o);
-    });
-  }
+      const dataFiltro = document.getElementById("dataFiltro").value;
+      const filtroSetor = document.getElementById("filtroSetor").value || "Todos";
+      const hojeISO = getHojeISO();
 
-  function renderizarDatalistAlunos() {
-    const dl = document.getElementById("listaAlunos");
-    dl.innerHTML = "";
-    listaAlunos.forEach((al) => {
-      const opt = document.createElement("option");
-      opt.value = al.nome;
-      opt.label = `${al.nome} - ${al.serie || ""}`;
-      dl.appendChild(opt);
-    });
-  }
-
-  function renderizarAtendimentos() {
-    const tbody = document.getElementById("tbodyAtendimentos");
-    tbody.innerHTML = "";
-
-    const dataFiltro = document.getElementById("dataFiltro").value;
-    const filtroSetor = document.getElementById("filtroSetor").value || "Todos";
-    const hojeISO = getHojeISO();
-
-    const basePorData = todosAtendimentos.filter((a) => {
-      if (dataFiltro === hojeISO) {
-        return (
-          a.dataAtendimento === dataFiltro ||
-          (a.status === "Pendente" && a.dataAtendimento < dataFiltro)
-        );
-      } else {
-        return a.dataAtendimento === dataFiltro;
-      }
-    });
-
-    const filtrados = basePorData.filter((a) =>
-      filtroSetor === "Todos" ? true : a.setor === filtroSetor
-    );
-
-    document.getElementById("contadorAtendimentos").innerText =
-      filtrados.length > 0
-        ? `${filtrados.length} atendimento(s) para ${formatarDataBR(
-            dataFiltro
-          )}`
-        : `Nenhum atendimento para ${formatarDataBR(dataFiltro)}`;
-
-    const podeAlterar =
-      usuarioLogado?.permissoes?.podeAlterarStatus === true;
-
-    filtrados.forEach((a) => {
-      const tr = document.createElement("tr");
-
-      const isAtrasado =
-        a.status === "Pendente" && a.dataAtendimento < hojeISO;
-
-      if (isAtrasado) {
-        tr.classList.add("table-danger");
-      }
-
-      const tdData = document.createElement("td");
-      tdData.textContent = formatarDataBR(a.dataAtendimento);
-      tr.appendChild(tdData);
-
-      const tdAluno = document.createElement("td");
-      tdAluno.textContent = a.nomeAluno;
-      tr.appendChild(tdAluno);
-
-      const tdSerie = document.createElement("td");
-      tdSerie.textContent = a.serieAluno || "";
-      tr.appendChild(tdSerie);
-
-      const tdMotivo = document.createElement("td");
-      tdMotivo.textContent = a.motivo;
-      tr.appendChild(tdMotivo);
-
-      const tdSetor = document.createElement("td");
-      tdSetor.innerHTML = `<span class="badge bg-info text-dark badge-setor">${a.setor}</span>`;
-      tr.appendChild(tdSetor);
-
-      const tdPlataforma = document.createElement("td");
-      tdPlataforma.textContent = a.plataforma;
-      tr.appendChild(tdPlataforma);
-
-      const tdRetorno = document.createElement("td");
-      tdRetorno.textContent = a.retorno;
-      tr.appendChild(tdRetorno);
-
-      const tdUsuario = document.createElement("td");
-      tdUsuario.textContent = a.usuarioNome || "-";
-      tr.appendChild(tdUsuario);
-
-      const tdStatus = document.createElement("td");
-      const spanStatus = document.createElement("span");
-      spanStatus.textContent = a.status;
-      if (isAtrasado) {
-        spanStatus.classList.add("status-pendente-atrasado");
-      } else {
-        spanStatus.classList.add(
-          a.status === "Resolvido" ? "status-resolvido" : "status-pendente"
-        );
-      }
-      tdStatus.appendChild(spanStatus);
-      tr.appendChild(tdStatus);
-
-      const tdAcoes = document.createElement("td");
-      tdAcoes.className = "text-center";
-
-      const btnGroup = document.createElement("div");
-      btnGroup.className = "btn-group btn-group-sm";
-
-      const btnEditar = document.createElement("button");
-      btnEditar.className = "btn btn-outline-primary";
-      btnEditar.textContent = "Editar";
-      btnEditar.onclick = () => abrirEdicaoAtendimento(a.id);
-
-      const btnToggle = document.createElement("button");
-      btnToggle.className =
-        "btn " +
-        (a.status === "Resolvido"
-          ? "btn-outline-secondary"
-          : "btn-outline-success");
-      btnToggle.textContent =
-        a.status === "Resolvido" ? "Pendente" : "Resolvido";
-
-      if (!podeAlterar) {
-        btnToggle.disabled = true;
-        btnToggle.classList.add("disabled");
-      }
-
-      btnToggle.onclick = async () => {
-        if (!podeAlterar) return;
-
-        const ref = doc(db, "atendimentos", a.id);
-        if (a.status === "Resolvido") {
-          await updateDoc(ref, { status: "Pendente" });
-        } else {
-          atendimentoEmAlteracaoId = a.id;
-          document.getElementById("obsResolvido").value = "";
-          document.getElementById("resolucaoRetorno").value =
-            a.retorno || "Retorno recebido";
-          document.getElementById("dataResolucao").value = getHojeISO();
-          const modalObs = new bootstrap.Modal(
-            document.getElementById("modalObservacao")
+      const basePorData = todosAtendimentos.filter((a) => {
+        if (dataFiltro === hojeISO) {
+          return (
+            a.dataAtendimento === dataFiltro ||
+            (a.status === "Pendente" && a.dataAtendimento < dataFiltro)
           );
-          modalObs.show();
+        } else {
+          return a.dataAtendimento === dataFiltro;
         }
-      };
+      });
 
-      const btnExcluir = document.createElement("button");
-      btnExcluir.className = "btn btn-outline-danger";
-      btnExcluir.textContent = "Excluir";
-      btnExcluir.onclick = async () => {
-        if (
-          !confirm(
-            "Tem certeza que deseja excluir este atendimento? Essa ação não pode ser desfeita."
+      const filtrados = basePorData.filter((a) =>
+        filtroSetor === "Todos" ? true : a.setor === filtroSetor
+      );
+
+      document.getElementById("contadorAtendimentos").innerText =
+        filtrados.length > 0
+          ? `${filtrados.length} atendimento(s) para ${formatarDataBR(
+              dataFiltro
+            )}`
+          : `Nenhum atendimento para ${formatarDataBR(dataFiltro)}`;
+
+      const podeAlterar =
+        usuarioLogado?.permissoes?.podeAlterarStatus === true;
+
+      filtrados.forEach((a) => {
+        const tr = document.createElement("tr");
+
+        const isAtrasado =
+          a.status === "Pendente" && a.dataAtendimento < hojeISO;
+
+        if (isAtrasado) {
+          tr.classList.add("table-danger");
+        }
+
+        const tdData = document.createElement("td");
+        tdData.textContent = formatarDataBR(a.dataAtendimento);
+        tr.appendChild(tdData);
+
+        const tdAluno = document.createElement("td");
+        tdAluno.textContent = a.nomeAluno;
+        tr.appendChild(tdAluno);
+
+        const tdSerie = document.createElement("td");
+        tdSerie.textContent = a.serieAluno || "";
+        tr.appendChild(tdSerie);
+
+        const tdMotivo = document.createElement("td");
+        tdMotivo.textContent = a.motivo;
+        tr.appendChild(tdMotivo);
+
+        const tdSetor = document.createElement("td");
+        tdSetor.innerHTML = `<span class="badge bg-info text-dark badge-setor">${a.setor}</span>`;
+        tr.appendChild(tdSetor);
+
+        const tdPlataforma = document.createElement("td");
+        tdPlataforma.textContent = a.plataforma;
+        tr.appendChild(tdPlataforma);
+
+        const tdRetorno = document.createElement("td");
+        tdRetorno.textContent = a.retorno;
+        tr.appendChild(tdRetorno);
+
+        const tdUsuario = document.createElement("td");
+        tdUsuario.textContent = a.usuarioNome || "-";
+        tr.appendChild(tdUsuario);
+
+        const tdStatus = document.createElement("td");
+        const spanStatus = document.createElement("span");
+        spanStatus.textContent = a.status;
+        if (isAtrasado) {
+          spanStatus.classList.add("status-pendente-atrasado");
+        } else {
+          spanStatus.classList.add(
+            a.status === "Resolvido" ? "status-resolvido" : "status-pendente"
+          );
+        }
+        tdStatus.appendChild(spanStatus);
+        tr.appendChild(tdStatus);
+
+        const tdAcoes = document.createElement("td");
+        tdAcoes.className = "text-center";
+
+        const btnGroup = document.createElement("div");
+        btnGroup.className = "btn-group btn-group-sm";
+
+        const btnEditar = document.createElement("button");
+        btnEditar.className = "btn btn-outline-primary";
+        btnEditar.textContent = "Editar";
+        btnEditar.onclick = () => abrirEdicaoAtendimento(a.id);
+
+        const btnToggle = document.createElement("button");
+        btnToggle.className =
+          "btn " +
+          (a.status === "Resolvido"
+            ? "btn-outline-secondary"
+            : "btn-outline-success");
+        btnToggle.textContent =
+          a.status === "Resolvido" ? "Pendente" : "Resolvido";
+
+        if (!podeAlterar) {
+          btnToggle.disabled = true;
+          btnToggle.classList.add("disabled");
+        }
+
+        btnToggle.onclick = async () => {
+          if (!podeAlterar) return;
+
+          const ref = doc(db, "atendimentos", a.id);
+          if (a.status === "Resolvido") {
+            await updateDoc(ref, { status: "Pendente" });
+          } else {
+            atendimentoEmAlteracaoId = a.id;
+            document.getElementById("obsResolvido").value = "";
+            document.getElementById("resolucaoRetorno").value =
+              a.retorno || "Retorno recebido";
+            document.getElementById("dataResolucao").value = getHojeISO();
+            const modalObs = new bootstrap.Modal(
+              document.getElementById("modalObservacao")
+            );
+            modalObs.show();
+          }
+        };
+
+        const btnExcluir = document.createElement("button");
+        btnExcluir.className = "btn btn-outline-danger";
+        btnExcluir.textContent = "Excluir";
+        btnExcluir.onclick = async () => {
+          if (
+            !confirm(
+              "Tem certeza que deseja excluir este atendimento? Essa ação não pode ser desfeita."
+            )
           )
-        )
-          return;
-        await deleteDoc(doc(db, "atendimentos", a.id));
-      };
+            return;
+          await deleteDoc(doc(db, "atendimentos", a.id));
+        };
 
-      btnGroup.appendChild(btnEditar);
-      btnGroup.appendChild(btnToggle);
-      btnGroup.appendChild(btnExcluir);
-      tdAcoes.appendChild(btnGroup);
-      tr.appendChild(tdAcoes);
+        btnGroup.appendChild(btnEditar);
+        btnGroup.appendChild(btnToggle);
+        btnGroup.appendChild(btnExcluir);
+        tdAcoes.appendChild(btnGroup);
+        tr.appendChild(tdAcoes);
 
-      tbody.appendChild(tr);
-    });
-  }
+        tbody.appendChild(tr);
+      });
+    }
 
-  function renderizarResumoSetores() {
-    const container = document.getElementById("resumoSetores");
-    const msgVazio = document.getElementById("resumoSetoresVazio");
-    const filtroSetor = document.getElementById("filtroSetor").value || "Todos";
-    const dataFiltro = document.getElementById("dataFiltro").value;
-    const hojeISO = getHojeISO();
+    function renderizarResumoSetores() {
+      const container = document.getElementById("resumoSetores");
+      const msgVazio = document.getElementById("resumoSetoresVazio");
+      const filtroSetor = document.getElementById("filtroSetor").value || "Todos";
+      const dataFiltro = document.getElementById("dataFiltro").value;
+      const hojeISO = getHojeISO();
 
-    const basePorData = todosAtendimentos.filter((a) => {
-      if (dataFiltro === hojeISO) {
-        return (
-          a.dataAtendimento === dataFiltro ||
-          (a.status === "Pendente" && a.dataAtendimento < dataFiltro)
+      const basePorData = todosAtendimentos.filter((a) => {
+        if (dataFiltro === hojeISO) {
+          return (
+            a.dataAtendimento === dataFiltro ||
+            (a.status === "Pendente" && a.dataAtendimento < dataFiltro)
+          );
+        } else {
+          return a.dataAtendimento === dataFiltro;
+        }
+      });
+
+      const listaBase =
+        filtroSetor === "Todos"
+          ? basePorData
+          : basePorData.filter((a) => a.setor === filtroSetor);
+
+      container.innerHTML = "";
+
+      if (listaBase.length === 0) {
+        msgVazio.style.display = "block";
+        return;
+      }
+
+      msgVazio.style.display = "none";
+
+      const contagem = {};
+      listaBase.forEach((a) => {
+        if (!contagem[a.setor]) contagem[a.setor] = 0;
+        contagem[a.setor]++;
+      });
+
+      Object.keys(contagem).forEach((setor) => {
+        const col = document.createElement("div");
+        col.className = "col-md-4 col-sm-6";
+
+        const card = document.createElement("div");
+        card.className = "border rounded p-3 h-100 bg-light";
+
+        const titulo = document.createElement("div");
+        titulo.className = "fw-semibold mb-1";
+        titulo.textContent = setor;
+
+        const qtd = document.createElement("div");
+        qtd.innerHTML = `<span class="h3 mb-0">${contagem[setor]}</span> demanda(s)`;
+
+        card.appendChild(titulo);
+        card.appendChild(qtd);
+        col.appendChild(card);
+        container.appendChild(col);
+      });
+    }
+
+    function abrirEdicaoAtendimento(id) {
+      const a = todosAtendimentos.find((x) => x.id === id);
+      if (!a) return;
+      const modalNovoEl = document.getElementById("modalNovoAtendimento");
+      const modalNovo = new bootstrap.Modal(modalNovoEl);
+
+      const campoDataAtendimentoVisivel =
+        document.getElementById("dataAtendimentoVisivel");
+      campoDataAtendimentoVisivel.removeAttribute("min");
+
+      document.getElementById("atendimentoEditandoId").value = a.id;
+      document.getElementById("dataAtendimentoVisivel").value =
+        a.dataAtendimento || getHojeISO();
+      document.getElementById("dataAtendimento").value =
+        a.dataAtendimento || getHojeISO();
+      document.getElementById("nomeAluno").value = a.nomeAluno || "";
+      document.getElementById("serieAluno").value = a.serieAluno || "";
+      document.getElementById("motivo").value = a.motivo || "";
+      document.getElementById("setor").value = a.setor || "";
+      document.getElementById("plataforma").value = a.plataforma || "";
+      document.getElementById("retorno").value = a.retorno || "Sem retorno";
+      document.getElementById("status").value = a.status || "Pendente";
+      document.getElementById("observacoes").value = a.observacoes || "";
+
+      modalNovo.show();
+    }
+
+    async function gerarPDF(dataISO, setorFiltro) {
+      if (!window.jspdf) {
+        alert("Biblioteca jsPDF não carregada.");
+        return;
+      }
+      if (!dataISO) {
+        alert("Selecione uma data para o relatório.");
+        return;
+      }
+
+      const ref = collection(db, "atendimentos");
+      let q;
+      if (setorFiltro && setorFiltro !== "Todos") {
+        q = query(
+          ref,
+          where("dataAtendimento", "==", dataISO),
+          where("setor", "==", setorFiltro)
         );
       } else {
-        return a.dataAtendimento === dataFiltro;
+        q = query(ref, where("dataAtendimento", "==", dataISO));
       }
-    });
 
-    const listaBase =
-      filtroSetor === "Todos"
-        ? basePorData
-        : basePorData.filter((a) => a.setor === filtroSetor);
+      const snap = await getDocs(q);
+      const registros = [];
+      snap.forEach((docSnap) => registros.push({ id: docSnap.id, ...docSnap.data() }));
 
-    container.innerHTML = "";
+      if (registros.length === 0) {
+        alert("Não há atendimentos para esta data e setor.");
+        return;
+      }
 
-    if (listaBase.length === 0) {
-      msgVazio.style.display = "block";
-      return;
-    }
+      const { jsPDF } = window.jspdf;
+      const docPdf = new jsPDF("p", "pt", "a4");
 
-    msgVazio.style.display = "none";
+      const dataBR = formatarDataBR(dataISO);
 
-    const contagem = {};
-    listaBase.forEach((a) => {
-      if (!contagem[a.setor]) contagem[a.setor] = 0;
-      contagem[a.setor]++;
-    });
-
-    Object.keys(contagem).forEach((setor) => {
-      const col = document.createElement("div");
-      col.className = "col-md-4 col-sm-6";
-
-      const card = document.createElement("div");
-      card.className = "border rounded p-3 h-100 bg-light";
-
-      const titulo = document.createElement("div");
-      titulo.className = "fw-semibold mb-1";
-      titulo.textContent = setor;
-
-      const qtd = document.createElement("div");
-      qtd.innerHTML = `<span class="h3 mb-0">${contagem[setor]}</span> demanda(s)`;
-
-      card.appendChild(titulo);
-      card.appendChild(qtd);
-      col.appendChild(card);
-      container.appendChild(col);
-    });
-  }
-
-  function abrirEdicaoAtendimento(id) {
-    const a = todosAtendimentos.find((x) => x.id === id);
-    if (!a) return;
-    const modalNovoEl = document.getElementById("modalNovoAtendimento");
-    const modalNovo = new bootstrap.Modal(modalNovoEl);
-
-    const campoDataAtendimentoVisivel =
-      document.getElementById("dataAtendimentoVisivel");
-    campoDataAtendimentoVisivel.removeAttribute("min");
-
-    document.getElementById("atendimentoEditandoId").value = a.id;
-    document.getElementById("dataAtendimentoVisivel").value =
-      a.dataAtendimento || getHojeISO();
-    document.getElementById("dataAtendimento").value =
-      a.dataAtendimento || getHojeISO();
-    document.getElementById("nomeAluno").value = a.nomeAluno || "";
-    document.getElementById("serieAluno").value = a.serieAluno || "";
-    document.getElementById("motivo").value = a.motivo || "";
-    document.getElementById("setor").value = a.setor || "";
-    document.getElementById("plataforma").value = a.plataforma || "";
-    document.getElementById("retorno").value = a.retorno || "Sem retorno";
-    document.getElementById("status").value = a.status || "Pendente";
-    document.getElementById("observacoes").value = a.observacoes || "";
-
-    modalNovo.show();
-  }
-
-  async function gerarPDF(dataISO, setorFiltro) {
-    if (!window.jspdf) {
-      alert("Biblioteca jsPDF não carregada.");
-      return;
-    }
-    if (!dataISO) {
-      alert("Selecione uma data para o relatório.");
-      return;
-    }
-
-    const ref = collection(db, "atendimentos");
-    let q;
-    if (setorFiltro && setorFiltro !== "Todos") {
-      q = query(
-        ref,
-        where("dataAtendimento", "==", dataISO),
-        where("setor", "==", setorFiltro)
-      );
-    } else {
-      q = query(ref, where("dataAtendimento", "==", dataISO));
-    }
-
-    const snap = await getDocs(q);
-    const registros = [];
-    snap.forEach((docSnap) => registros.push({ id: docSnap.id, ...docSnap.data() }));
-
-    if (registros.length === 0) {
-      alert("Não há atendimentos para esta data e setor.");
-      return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const docPdf = new jsPDF("p", "pt", "a4");
-
-    const dataBR = formatarDataBR(dataISO);
-
-    docPdf.setFontSize(16);
-    docPdf.text("Relatório de Atendimentos - Secretaria", 40, 40);
-    docPdf.setFontSize(12);
-    docPdf.text(`Data dos atendimentos: ${dataBR}`, 40, 60);
-    if (setorFiltro && setorFiltro !== "Todos") {
-      docPdf.text(`Setor: ${setorFiltro}`, 40, 75);
-    } else {
-      docPdf.text("Setor: Todos", 40, 75);
-    }
-    docPdf.text(`Relatório gerado em: ${getDataHoraBR()}`, 40, 90);
-    if (usuarioLogado) {
-      docPdf.text(
-        `Gerado por: ${usuarioLogado.nome} (${usuarioLogado.perfil})`,
-        40,
-        105
-      );
-    }
-
-    const body = registros.map((a) => [
-      formatarDataBR(a.dataAtendimento),
-      a.nomeAluno,
-      a.serieAluno || "",
-      a.motivo,
-      a.setor,
-      a.plataforma,
-      a.retorno,
-      a.usuarioNome || "",
-      a.status,
-      a.observacoes || ""
-    ]);
-
-    docPdf.autoTable({
-      startY: 125,
-      head: [
-        [
-          "Data",
-          "Aluno",
-          "Série",
-          "Motivo",
-          "Setor",
-          "Plataforma",
-          "Retorno",
-          "Usuário",
-          "Status",
-          "Obs."
-        ]
-      ],
-      body: body,
-      styles: { fontSize: 8, cellPadding: 4 },
-      headStyles: { fillColor: [41, 128, 185] }
-    });
-
-    const contagem = {};
-    registros.forEach((a) => {
-      if (!contagem[a.setor]) contagem[a.setor] = 0;
-      contagem[a.setor]++;
-    });
-
-    let finalY = docPdf.lastAutoTable.finalY || 125;
-    finalY += 30;
-
-    docPdf.setFontSize(13);
-    docPdf.text("Resumo de demandas por setor", 40, finalY);
-    finalY += 10;
-
-    const resumoBody = Object.keys(contagem).map((setor) => [
-      setor,
-      contagem[setor]
-    ]);
-
-    docPdf.autoTable({
-      startY: finalY,
-      head: [["Setor", "Quantidade de atendimentos"]],
-      body: resumoBody,
-      styles: { fontSize: 10, cellPadding: 4 },
-      headStyles: { fillColor: [39, 174, 96] }
-    });
-
-    const nomeArquivo = `relatorio_atendimentos_${dataISO}${
-      setorFiltro && setorFiltro !== "Todos" ? "_" + setorFiltro : ""
-    }.pdf`;
-    docPdf.save(nomeArquivo);
-  }
-
-  function exportarDadosDoDia() {
-    const dataFiltro = document.getElementById("dataFiltro").value;
-    const hojeISO = getHojeISO();
-
-    const basePorData = todosAtendimentos.filter((a) => {
-      if (dataFiltro === hojeISO) {
-        return (
-          a.dataAtendimento === dataFiltro ||
-          (a.status === "Pendente" && a.dataAtendimento < dataFiltro)
-        );
+      docPdf.setFontSize(16);
+      docPdf.text("Relatório de Atendimentos - Secretaria", 40, 40);
+      docPdf.setFontSize(12);
+      docPdf.text(`Data dos atendimentos: ${dataBR}`, 40, 60);
+      if (setorFiltro && setorFiltro !== "Todos") {
+        docPdf.text(`Setor: ${setorFiltro}`, 40, 75);
       } else {
-        return a.dataAtendimento === dataFiltro;
+        docPdf.text("Setor: Todos", 40, 75);
       }
-    });
+      docPdf.text(`Relatório gerado em: ${getDataHoraBR()}`, 40, 90);
+      if (usuarioLogado) {
+        docPdf.text(
+          `Gerado por: ${usuarioLogado.nome} (${usuarioLogado.perfil})`,
+          40,
+          105
+        );
+      }
 
-    if (basePorData.length === 0) {
-      alert("Não há dados para exportar nesta data.");
-      return;
+      const body = registros.map((a) => [
+        formatarDataBR(a.dataAtendimento),
+        a.nomeAluno,
+        a.serieAluno || "",
+        a.motivo,
+        a.setor,
+        a.plataforma,
+        a.retorno,
+        a.usuarioNome || "",
+        a.status,
+        a.observacoes || ""
+      ]);
+
+      docPdf.autoTable({
+        startY: 125,
+        head: [
+          [
+            "Data",
+            "Aluno",
+            "Série",
+            "Motivo",
+            "Setor",
+            "Plataforma",
+            "Retorno",
+            "Usuário",
+            "Status",
+            "Obs."
+          ]
+        ],
+        body: body,
+        styles: { fontSize: 8, cellPadding: 4 },
+        headStyles: { fillColor: [41, 128, 185] }
+      });
+
+      const contagem = {};
+      registros.forEach((a) => {
+        if (!contagem[a.setor]) contagem[a.setor] = 0;
+        contagem[a.setor]++;
+      });
+
+      let finalY = docPdf.lastAutoTable.finalY || 125;
+      finalY += 30;
+
+      docPdf.setFontSize(13);
+      docPdf.text("Resumo de demandas por setor", 40, finalY);
+      finalY += 10;
+
+      const resumoBody = Object.keys(contagem).map((setor) => [
+        setor,
+        contagem[setor]
+      ]);
+
+      docPdf.autoTable({
+        startY: finalY,
+        head: [["Setor", "Quantidade de atendimentos"]],
+        body: resumoBody,
+        styles: { fontSize: 10, cellPadding: 4 },
+        headStyles: { fillColor: [39, 174, 96] }
+      });
+
+      const nomeArquivo = `relatorio_atendimentos_${dataISO}${
+        setorFiltro && setorFiltro !== "Todos" ? "_" + setorFiltro : ""
+      }.pdf`;
+      docPdf.save(nomeArquivo);
     }
 
-    const blob = new Blob([JSON.stringify(basePorData, null, 2)], {
-      type: "application/json"
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `atendimentos_${dataFiltro}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
+    function exportarDadosDoDia() {
+      const dataFiltro = document.getElementById("dataFiltro").value;
+      const hojeISO = getHojeISO();
 
-  async function importarDados(arquivo) {
-    const leitor = new FileReader();
-    leitor.onload = async function (e) {
-      try {
-        const dados = JSON.parse(e.target.result);
-        if (!Array.isArray(dados)) {
-          alert("Arquivo inválido. Deve ser um array de atendimentos.");
-          return;
+      const basePorData = todosAtendimentos.filter((a) => {
+        if (dataFiltro === hojeISO) {
+          return (
+            a.dataAtendimento === dataFiltro ||
+            (a.status === "Pendente" && a.dataAtendimento < dataFiltro)
+          );
+        } else {
+          return a.dataAtendimento === dataFiltro;
         }
-        const ref = collection(db, "atendimentos");
-        for (const reg of dados) {
-          const { id, ...resto } = reg;
-          await addDoc(ref, resto);
-        }
-        alert("Dados importados com sucesso para o Firebase.");
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao ler o arquivo. Verifique se é um JSON válido.");
+      });
+
+      if (basePorData.length === 0) {
+        alert("Não há dados para exportar nesta data.");
+        return;
       }
-    };
-    leitor.readAsText(arquivo, "utf-8");
-  }
 
-  async function limparColecaoAlunos() {
-    const ref = collection(db, "alunos");
-    const snap = await getDocs(ref);
-    const deletions = snap.docs.map((d) => deleteDoc(d.ref));
-    await Promise.all(deletions);
-  }
-
-  async function importarAlunosJSON(arquivo) {
-    const leitor = new FileReader();
-    leitor.onload = async function (e) {
-      try {
-        const dados = JSON.parse(e.target.result);
-        if (!Array.isArray(dados)) {
-          alert("Arquivo inválido. Deve ser um array de alunos.");
-          return;
-        }
-        await limparColecaoAlunos();
-        const ref = collection(db, "alunos");
-        for (const al of dados) {
-          if (!al.nome || !al.serie) continue;
-          await addDoc(ref, {
-            nome: al.nome,
-            serie: al.serie
-          });
-        }
-        alert("Alunos importados com sucesso (JSON).");
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao importar alunos. Verifique se o JSON está no formato correto.");
-      }
-    };
-    leitor.readAsText(arquivo, "utf-8");
-  }
-
-  async function importarAlunosPDF(arquivo) {
-    if (!pdfjsLib) {
-      alert("Biblioteca PDF.js não carregada.");
-      return;
+      const blob = new Blob([JSON.stringify(basePorData, null, 2)], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `atendimentos_${dataFiltro}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
-    try {
-      const pdfStorageRef = storageRef(storage, "ensalamento/atual.pdf");
-      await uploadBytes(pdfStorageRef, arquivo);
 
+    async function importarDados(arquivo) {
       const leitor = new FileReader();
       leitor.onload = async function (e) {
         try {
-          const arrayBuffer = e.target.result;
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          const todosAlunos = [];
-
-          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            const page = await pdf.getPage(pageNum);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map((i) => i.str).join(" ");
-
-            const serieMatch = pageText.match(/\(([A-Z0-9]{6,})\)[^()]*Ano Letivo/);
-            if (!serieMatch) continue;
-            const serieCodigo = serieMatch[1];
-
-            const re = /([A-ZÁ-Úa-zá-úçÇ'´` ]+?)\s+(\d{6})\s+\d+\s+\d{2}\/\d{2}\/\d{4}/g;
-            let m;
-            while ((m = re.exec(pageText)) !== null) {
-              let nome = m[1].trim();
-              if (
-                /RA Nº|Nome Status|Tipo de Ingresso|Total Aluno Novo|Total Rematrícula/i.test(
-                  nome
-                )
-              ) {
-                continue;
-              }
-              if (!/[A-Za-zÁ-Úá-úçÇ]/.test(nome)) continue;
-              todosAlunos.push({
-                nome,
-                serie: serieCodigo
-              });
-            }
-          }
-
-          if (todosAlunos.length === 0) {
-            alert("Nenhum aluno foi identificado no PDF. Verifique o layout do arquivo.");
+          const dados = JSON.parse(e.target.result);
+          if (!Array.isArray(dados)) {
+            alert("Arquivo inválido. Deve ser um array de atendimentos.");
             return;
           }
-
-          await limparColecaoAlunos();
-          const refAlunos = collection(db, "alunos");
-          for (const al of todosAlunos) {
-            await addDoc(refAlunos, al);
+          const ref = collection(db, "atendimentos");
+          for (const reg of dados) {
+            const { id, ...resto } = reg;
+            await addDoc(ref, resto);
           }
-
-          alert(
-            `Importação concluída. ${todosAlunos.length} alunos cadastrados com base no PDF.`
-          );
+          alert("Dados importados com sucesso para o Firebase.");
         } catch (err) {
           console.error(err);
-          alert("Erro ao processar o PDF. Verifique se o arquivo é um ensalamento válido.");
+          alert("Erro ao ler o arquivo. Verifique se é um JSON válido.");
         }
       };
-      leitor.readAsArrayBuffer(arquivo);
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao enviar o PDF para o Storage.");
+      leitor.readAsText(arquivo, "utf-8");
     }
-  }
 
-  async function importarAlunos(arquivo) {
-    const nome = arquivo.name.toLowerCase();
-    if (nome.endsWith(".pdf")) {
-      await importarAlunosPDF(arquivo);
-    } else if (nome.endsWith(".json")) {
-      await importarAlunosJSON(arquivo);
-    } else {
-      alert("Formato não suportado. Use arquivos .pdf ou .json.");
+    async function limparColecaoAlunos() {
+      const ref = collection(db, "alunos");
+      const snap = await getDocs(ref);
+      const deletions = snap.docs.map((d) => deleteDoc(d.ref));
+      await Promise.all(deletions);
     }
-  }
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    const campoDataFiltro = document.getElementById("dataFiltro");
-    const campoDataAtendimento = document.getElementById("dataAtendimento");
-    const campoDataAtendimentoVisivel = document.getElementById(
-      "dataAtendimentoVisivel"
-    );
-    const hoje = getHojeISO();
-    campoDataFiltro.value = hoje;
-    campoDataAtendimento.value = hoje;
-    campoDataAtendimentoVisivel.value = hoje;
+    async function importarAlunosJSON(arquivo) {
+      const leitor = new FileReader();
+      leitor.onload = async function (e) {
+        try {
+          const dados = JSON.parse(e.target.result);
+          if (!Array.isArray(dados)) {
+            alert("Arquivo inválido. Deve ser um array de alunos.");
+            return;
+          }
+          await limparColecaoAlunos();
+          const ref = collection(db, "alunos");
+          for (const al of dados) {
+            if (!al.nome || !al.serie) continue;
+            await addDoc(ref, {
+              nome: al.nome,
+              serie: al.serie
+            });
+          }
+          alert("Alunos importados com sucesso (JSON).");
+        } catch (err) {
+          console.error(err);
+          alert("Erro ao importar alunos. Verifique se o JSON está no formato correto.");
+        }
+      };
+      leitor.readAsText(arquivo, "utf-8");
+    }
 
-    document
-      .getElementById("btnToggleSenha")
-      .addEventListener("click", () => {
-        const input = document.getElementById("loginSenha");
-        input.type = input.type === "password" ? "text" : "password";
+    async function importarAlunosPDF(arquivo) {
+      if (!pdfjsLib) {
+        alert("Biblioteca PDF.js não carregada.");
+        return;
+      }
+      try {
+        // Salva o PDF bruto como "base" no Storage
+        const pdfStorageRef = storageRef(storage, "ensalamento/atual.pdf");
+        await uploadBytes(pdfStorageRef, arquivo);
+
+        const leitor = new FileReader();
+        leitor.onload = async function (e) {
+          try {
+            const arrayBuffer = e.target.result;
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const todosAlunos = [];
+
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              const page = await pdf.getPage(pageNum);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items.map((i) => i.str).join(" ");
+
+              // Ajuste conforme o layout do ensalamento
+              const serieMatch = pageText.match(/\(([A-Z0-9]{6,})\)[^()]*Ano Letivo/);
+              if (!serieMatch) continue;
+              const serieCodigo = serieMatch[1];
+
+              const re = /([A-ZÁ-Úa-zá-úçÇ'´` ]+?)\s+(\d{6})\s+\d+\s+\d{2}\/\d{2}\/\d{4}/g;
+              let m;
+              while ((m = re.exec(pageText)) !== null) {
+                let nome = m[1].trim();
+                if (
+                  /RA Nº|Nome Status|Tipo de Ingresso|Total Aluno Novo|Total Rematrícula/i.test(
+                    nome
+                  )
+                ) {
+                  continue;
+                }
+                if (!/[A-Za-zÁ-Úá-úçÇ]/.test(nome)) continue;
+                todosAlunos.push({
+                  nome,
+                  serie: serieCodigo
+                });
+              }
+            }
+
+            if (todosAlunos.length === 0) {
+              alert("Nenhum aluno foi identificado no PDF. Verifique o layout do arquivo.");
+              return;
+            }
+
+            await limparColecaoAlunos();
+            const refAlunos = collection(db, "alunos");
+            for (const al of todosAlunos) {
+              await addDoc(refAlunos, al);
+            }
+
+            alert(
+              `Importação concluída. ${todosAlunos.length} alunos cadastrados com base no PDF.`
+            );
+          } catch (err) {
+            console.error(err);
+            alert("Erro ao processar o PDF. Verifique se o arquivo é um ensalamento válido.");
+          }
+        };
+        leitor.readAsArrayBuffer(arquivo);
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao enviar o PDF para o Storage.");
+      }
+    }
+
+    async function importarAlunos(arquivo) {
+      const nome = arquivo.name.toLowerCase();
+      if (nome.endsWith(".pdf")) {
+        await importarAlunosPDF(arquivo);
+      } else if (nome.endsWith(".json")) {
+        await importarAlunosJSON(arquivo);
+      } else {
+        alert("Formato não suportado. Use arquivos .pdf ou .json.");
+      }
+    }
+
+    // ---------- AUTOCOMPLETE DE ALUNOS ----------
+    function atualizarSugestoesAlunos(texto) {
+      const container = document.getElementById("sugestoesAlunos");
+      container.innerHTML = "";
+
+      const termo = texto.trim().toLowerCase();
+      if (!termo) {
+        container.style.display = "none";
+        return;
+      }
+
+      // Filtra por nome contendo o termo
+      const filtrados = listaAlunos
+        .filter((al) => al.nome.toLowerCase().includes(termo))
+        .slice(0, 25); // limita quantidade para não ficar enorme
+
+      if (filtrados.length === 0) {
+        container.style.display = "none";
+        return;
+      }
+
+      filtrados.forEach((al) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "list-group-item list-group-item-action";
+        item.textContent = `${al.nome} - ${al.serie || ""}`;
+        item.onclick = () => {
+          document.getElementById("nomeAluno").value = al.nome;
+          document.getElementById("serieAluno").value = al.serie || "";
+          container.style.display = "none";
+        };
+        container.appendChild(item);
       });
 
-    campoDataAtendimentoVisivel.addEventListener("change", () => {
-      campoDataAtendimento.value =
-        campoDataAtendimentoVisivel.value || getHojeISO();
-    });
-
-    try {
-      const masterSnap = await getDoc(doc(db, "usuarios", "master"));
-      if (masterSnap.exists()) {
-        const hint = document.getElementById("hintMaster");
-        if (hint) hint.style.display = "none";
-      }
-    } catch (e) {
-      console.error("Erro ao verificar usuário master:", e);
+      container.style.display = "block";
     }
 
-    await carregarUsuarioLogadoLocal();
+    document.addEventListener("DOMContentLoaded", async () => {
+      const campoDataFiltro = document.getElementById("dataFiltro");
+      const campoDataAtendimento = document.getElementById("dataAtendimento");
+      const campoDataAtendimentoVisivel = document.getElementById(
+        "dataAtendimentoVisivel"
+      );
+      const hoje = getHojeISO();
+      campoDataFiltro.value = hoje;
+      campoDataAtendimento.value = hoje;
+      campoDataAtendimentoVisivel.value = hoje;
 
-    if (usuarioLogado) {
-      exibirApp();
-      iniciarListenerAtendimentos();
-      iniciarListenerSetores();
-      iniciarListenerAlunos();
-      if (usuarioLogado.permissoes?.podeGerenciarUsuarios) {
-        iniciarListenerUsuarios();
+      document
+        .getElementById("btnToggleSenha")
+        .addEventListener("click", () => {
+          const input = document.getElementById("loginSenha");
+          input.type = input.type === "password" ? "text" : "password";
+        });
+
+      campoDataAtendimentoVisivel.addEventListener("change", () => {
+        campoDataAtendimento.value =
+          campoDataAtendimentoVisivel.value || getHojeISO();
+      });
+
+      try {
+        const masterSnap = await getDoc(doc(db, "usuarios", "master"));
+        if (masterSnap.exists()) {
+          const hint = document.getElementById("hintMaster");
+          if (hint) hint.style.display = "none";
+        }
+      } catch (e) {
+        console.error("Erro ao verificar usuário master:", e);
       }
-    } else {
-      exibirLogin();
-    }
 
-    document
-      .getElementById("formLogin")
-      .addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const username = document
-          .getElementById("loginUsuario")
-          .value.trim();
-        const senha = document.getElementById("loginSenha").value;
-        const manter = document.getElementById("manterLogin").checked;
+      await carregarUsuarioLogadoLocal();
 
-        const ok = await fazerLogin(username, senha);
-        if (!ok) {
-          alert("Usuário ou senha inválidos.");
-          return;
-        }
-
-        localStorage.setItem(STORAGE_KEY_MANTER, manter ? "true" : "false");
-        if (manter) {
-          localStorage.setItem(STORAGE_KEY_USUARIO, usuarioLogado.username);
-        } else {
-          localStorage.removeItem(STORAGE_KEY_USUARIO);
-        }
-
-        document.getElementById("loginUsuario").value = "";
-        document.getElementById("loginSenha").value = "";
+      if (usuarioLogado) {
         exibirApp();
         iniciarListenerAtendimentos();
         iniciarListenerSetores();
@@ -1796,279 +1812,424 @@ https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js</script>
         if (usuarioLogado.permissoes?.podeGerenciarUsuarios) {
           iniciarListenerUsuarios();
         }
+      } else {
+        exibirLogin();
+      }
+
+      document
+        .getElementById("formLogin")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const username = document
+            .getElementById("loginUsuario")
+            .value.trim();
+          const senha = document.getElementById("loginSenha").value;
+          const manter = document.getElementById("manterLogin").checked;
+
+          const ok = await fazerLogin(username, senha);
+          if (!ok) {
+            alert("Usuário ou senha inválidos.");
+            return;
+          }
+
+          localStorage.setItem(STORAGE_KEY_MANTER, manter ? "true" : "false");
+          if (manter) {
+            localStorage.setItem(STORAGE_KEY_USUARIO, usuarioLogado.username);
+          } else {
+            localStorage.removeItem(STORAGE_KEY_USUARIO);
+          }
+
+          document.getElementById("loginUsuario").value = "";
+          document.getElementById("loginSenha").value = "";
+          exibirApp();
+          iniciarListenerAtendimentos();
+          iniciarListenerSetores();
+          iniciarListenerAlunos();
+          if (usuarioLogado.permissoes?.podeGerenciarUsuarios) {
+            iniciarListenerUsuarios();
+          }
+        });
+
+      document.getElementById("btnLogout").addEventListener("click", () => {
+        usuarioLogado = null;
+        localStorage.removeItem(STORAGE_KEY_USUARIO);
+        localStorage.setItem(STORAGE_KEY_MANTER, "false");
+        if (unsubscribeAtendimentos) unsubscribeAtendimentos();
+        if (unsubscribeUsuarios) unsubscribeUsuarios();
+        if (unsubscribeSetores) unsubscribeSetores();
+        if (unsubscribeAlunos) unsubscribeAlunos();
+        todosAtendimentos = [];
+        document.getElementById("tbodyAtendimentos").innerHTML = "";
+        document.getElementById("resumoSetores").innerHTML = "";
+        document.getElementById("resumoSetoresVazio").style.display = "block";
+        exibirLogin();
       });
 
-    document.getElementById("btnLogout").addEventListener("click", () => {
-      usuarioLogado = null;
-      localStorage.removeItem(STORAGE_KEY_USUARIO);
-      localStorage.setItem(STORAGE_KEY_MANTER, "false");
-      if (unsubscribeAtendimentos) unsubscribeAtendimentos();
-      if (unsubscribeUsuarios) unsubscribeUsuarios();
-      if (unsubscribeSetores) unsubscribeSetores();
-      if (unsubscribeAlunos) unsubscribeAlunos();
-      todosAtendimentos = [];
-      document.getElementById("tbodyAtendimentos").innerHTML = "";
-      document.getElementById("resumoSetores").innerHTML = "";
-      document.getElementById("resumoSetoresVazio").style.display = "block";
-      exibirLogin();
-    });
-
-    campoDataFiltro.addEventListener("change", () => {
-      renderizarAtendimentos();
-      renderizarResumoSetores();
-    });
-
-    document
-      .getElementById("filtroSetor")
-      .addEventListener("change", () => {
+      campoDataFiltro.addEventListener("change", () => {
         renderizarAtendimentos();
         renderizarResumoSetores();
       });
 
-    document
-      .getElementById("btnToggleGestaoDetalhes")
-      .addEventListener("click", () => {
-        const el = document.getElementById("gestaoDetalhes");
-        el.style.display = el.style.display === "none" ? "block" : "none";
-      });
+      document
+        .getElementById("filtroSetor")
+        .addEventListener("change", () => {
+          renderizarAtendimentos();
+          renderizarResumoSetores();
+        });
 
-    document
-      .getElementById("btnToggleTabelaUsuarios")
-      .addEventListener("click", () => {
-        const el = document.getElementById("usuariosTabelaWrapper");
-        el.style.display = el.style.display === "none" ? "block" : "none";
-      });
+      document
+        .getElementById("btnToggleGestaoDetalhes")
+        .addEventListener("click", () => {
+          const el = document.getElementById("gestaoDetalhes");
+          el.style.display = el.style.display === "none" ? "block" : "none";
+        });
 
-    document
-      .getElementById("btnToggleTabelaSetores")
-      .addEventListener("click", () => {
-        const el = document.getElementById("setoresTabelaWrapper");
-        el.style.display = el.style.display === "none" ? "block" : "none";
-      });
+      document
+        .getElementById("btnToggleTabelaUsuarios")
+        .addEventListener("click", () => {
+          const el = document.getElementById("usuariosTabelaWrapper");
+          el.style.display = el.style.display === "none" ? "block" : "none";
+        });
 
-    const modalNovoEl = document.getElementById("modalNovoAtendimento");
-    const modalNovo = new bootstrap.Modal(modalNovoEl);
+      document
+        .getElementById("btnToggleTabelaSetores")
+        .addEventListener("click", () => {
+          const el = document.getElementById("setoresTabelaWrapper");
+          el.style.display = el.style.display === "none" ? "block" : "none";
+        });
 
-    document.getElementById("fabNovo").addEventListener("click", () => {
-      if (!usuarioLogado?.permissoes?.podeRegistrarAtendimento) {
-        alert("Você não tem permissão para registrar atendimentos.");
-        return;
-      }
-      const hoje = getHojeISO();
-      campoDataAtendimento.value = hoje;
-      campoDataAtendimentoVisivel.value = hoje;
-      campoDataAtendimentoVisivel.min = hoje;
-      document.getElementById("formAtendimento").reset();
-      document.getElementById("atendimentoEditandoId").value = "";
-      campoDataAtendimento.value = hoje;
-      campoDataAtendimentoVisivel.value = hoje;
-      campoDataAtendimentoVisivel.min = hoje;
-      modalNovo.show();
-    });
+      const modalNovoEl = document.getElementById("modalNovoAtendimento");
+      const modalNovo = new bootstrap.Modal(modalNovoEl);
 
-    document.getElementById("nomeAluno").addEventListener("change", () => {
-      const nome = document.getElementById("nomeAluno").value.trim();
-      const aluno = listaAlunos.find((a) => a.nome === nome);
-      document.getElementById("serieAluno").value = aluno?.serie || "";
-    });
-
-    document
-      .getElementById("btnSalvarAtendimento")
-      .addEventListener("click", async () => {
+      document.getElementById("fabNovo").addEventListener("click", () => {
         if (!usuarioLogado?.permissoes?.podeRegistrarAtendimento) {
           alert("Você não tem permissão para registrar atendimentos.");
           return;
         }
-
-        const idEdicao = document.getElementById(
-          "atendimentoEditandoId"
-        ).value;
-        const nomeAluno = document
-          .getElementById("nomeAluno")
-          .value.trim();
-        const serieAluno = document
-          .getElementById("serieAluno")
-          .value.trim();
-        const motivo = document.getElementById("motivo").value.trim();
-        const setor = document.getElementById("setor").value;
-        const plataforma = document.getElementById("plataforma").value;
-        const retorno = document.getElementById("retorno").value;
-        const status = document.getElementById("status").value;
-        const observacoes = document
-          .getElementById("observacoes")
-          .value.trim();
-        const dataAtendimento =
-          document.getElementById("dataAtendimento").value || getHojeISO();
-
-        const hojeISO = getHojeISO();
-        if (dataAtendimento < hojeISO) {
-          alert("Não é permitido registrar atendimentos com data retroativa.");
-          return;
-        }
-
-        if (
-          !nomeAluno ||
-          !motivo ||
-          !setor ||
-          !plataforma ||
-          !retorno ||
-          !status
-        ) {
-          alert("Preencha todos os campos obrigatórios.");
-          return;
-        }
-
-        if (idEdicao) {
-          const ref = doc(db, "atendimentos", idEdicao);
-          await updateDoc(ref, {
-            dataAtendimento,
-            nomeAluno,
-            serieAluno,
-            motivo,
-            setor,
-            plataforma,
-            retorno,
-            status,
-            observacoes
-          });
-        } else {
-          const novo = {
-            dataAtendimento,
-            nomeAluno,
-            serieAluno,
-            motivo,
-            setor,
-            plataforma,
-            retorno,
-            status,
-            observacoes,
-            usuarioUsername: usuarioLogado.username,
-            usuarioNome: usuarioLogado.nome
-          };
-          await addDoc(collection(db, "atendimentos"), novo);
-        }
-
+        const hoje = getHojeISO();
+        campoDataAtendimento.value = hoje;
+        campoDataAtendimentoVisivel.value = hoje;
+        campoDataAtendimentoVisivel.min = hoje;
         document.getElementById("formAtendimento").reset();
         document.getElementById("atendimentoEditandoId").value = "";
-        modalNovo.hide();
+        campoDataAtendimento.value = hoje;
+        campoDataAtendimentoVisivel.value = hoje;
+        campoDataAtendimentoVisivel.min = hoje;
+        modalNovo.show();
       });
 
-    document
-      .getElementById("btnSalvarObs")
-      .addEventListener("click", async () => {
-        const obs = document.getElementById("obsResolvido").value.trim();
-        const retornoNovo = document.getElementById(
-          "resolucaoRetorno"
-        ).value;
-        const dataResolucao = document.getElementById(
-          "dataResolucao"
-        ).value || getHojeISO();
+      // Autocomplete de alunos
+      const nomeAlunoInput = document.getElementById("nomeAluno");
+      const sugestoesAlunosDiv = document.getElementById("sugestoesAlunos");
 
-        if (atendimentoEmAlteracaoId) {
-          const ref = doc(db, "atendimentos", atendimentoEmAlteracaoId);
-          const atual = todosAtendimentos.find(
-            (x) => x.id === atendimentoEmAlteracaoId
+      nomeAlunoInput.addEventListener("input", () => {
+        atualizarSugestoesAlunos(nomeAlunoInput.value);
+      });
+
+      nomeAlunoInput.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          sugestoesAlunosDiv.style.display = "none";
+        }
+      });
+
+      // Ao perder o foco, esconde a lista e tenta casar o nome exatamente
+      nomeAlunoInput.addEventListener("blur", () => {
+        setTimeout(() => {
+          sugestoesAlunosDiv.style.display = "none";
+          const nome = nomeAlunoInput.value.trim().toLowerCase();
+          if (!nome) return;
+          const aluno = listaAlunos.find(
+            (a) => a.nome.toLowerCase() === nome
           );
-          let novasObs = atual?.observacoes || "";
-          if (obs) {
-            novasObs = novasObs ? `${novasObs} | ${obs}` : obs;
+          if (aluno) {
+            document.getElementById("serieAluno").value = aluno.serie || "";
           }
-          await updateDoc(ref, {
-            status: "Resolvido",
-            observacoes: novasObs,
-            retorno: retornoNovo,
-            dataResolucao
-          });
-        }
-        const modalObsEl = document.getElementById("modalObservacao");
-        const modalObsInstance = bootstrap.Modal.getInstance(modalObsEl);
-        modalObsInstance.hide();
-        atendimentoEmAlteracaoId = null;
+        }, 200);
       });
 
-    const modalRelEl = document.getElementById("modalRelatorio");
-    const modalRel = new bootstrap.Modal(modalRelEl);
+      document
+        .getElementById("btnSalvarAtendimento")
+        .addEventListener("click", async () => {
+          if (!usuarioLogado?.permissoes?.podeRegistrarAtendimento) {
+            alert("Você não tem permissão para registrar atendimentos.");
+            return;
+          }
 
-    document.getElementById("fabRelatorio").addEventListener("click", () => {
-      if (!usuarioLogado?.permissoes?.podeGerarRelatorio) {
-        alert("Você não tem permissão para gerar relatórios.");
-        return;
-      }
-      const dataFiltro = document.getElementById("dataFiltro").value;
-      document.getElementById("relData").value = dataFiltro || getHojeISO();
-      const filtroSetor = document.getElementById("filtroSetor").value;
-      document.getElementById("relSetor").value =
-        filtroSetor || "Todos";
-      modalRel.show();
-    });
+          const idEdicao = document.getElementById(
+            "atendimentoEditandoId"
+          ).value;
+          const nomeAluno = document
+            .getElementById("nomeAluno")
+            .value.trim();
+          const serieAluno = document
+            .getElementById("serieAluno")
+            .value.trim();
+          const motivo = document.getElementById("motivo").value.trim();
+          const setor = document.getElementById("setor").value;
+          const plataforma = document.getElementById("plataforma").value;
+          const retorno = document.getElementById("retorno").value;
+          const status = document.getElementById("status").value;
+          const observacoes = document
+            .getElementById("observacoes")
+            .value.trim();
+          const dataAtendimento =
+            document.getElementById("dataAtendimento").value || getHojeISO();
 
-    document
-      .getElementById("btnGerarRelatorioConfirm")
-      .addEventListener("click", async () => {
-      const dataRel = document.getElementById("relData").value;
-      const setorRel = document.getElementById("relSetor").value;
-      await gerarPDF(dataRel, setorRel);
-    });
+          const hojeISO = getHojeISO();
+          if (dataAtendimento < hojeISO) {
+            alert("Não é permitido registrar atendimentos com data retroativa.");
+            return;
+          }
 
-    document
-      .getElementById("btnExportar")
-      .addEventListener("click", exportarDadosDoDia);
+          if (
+            !nomeAluno ||
+            !motivo ||
+            !setor ||
+            !plataforma ||
+            !retorno ||
+            !status
+          ) {
+            alert("Preencha todos os campos obrigatórios.");
+            return;
+          }
 
-    document.getElementById("btnImportar").addEventListener("click", () => {
-      document.getElementById("inputImportar").click();
-    });
+          if (idEdicao) {
+            const ref = doc(db, "atendimentos", idEdicao);
+            await updateDoc(ref, {
+              dataAtendimento,
+              nomeAluno,
+              serieAluno,
+              motivo,
+              setor,
+              plataforma,
+              retorno,
+              status,
+              observacoes
+            });
+          } else {
+            const novo = {
+              dataAtendimento,
+              nomeAluno,
+              serieAluno,
+              motivo,
+              setor,
+              plataforma,
+              retorno,
+              status,
+              observacoes,
+              usuarioUsername: usuarioLogado.username,
+              usuarioNome: usuarioLogado.nome
+            };
+            await addDoc(collection(db, "atendimentos"), novo);
+          }
 
-    document
-      .getElementById("inputImportar")
-      .addEventListener("change", (e) => {
-        const arquivo = e.target.files[0];
-        if (arquivo) {
-          importarDados(arquivo);
-          e.target.value = "";
-        }
-      });
+          document.getElementById("formAtendimento").reset();
+          document.getElementById("atendimentoEditandoId").value = "";
+          modalNovo.hide();
+        });
 
-    document
-      .getElementById("tbodyUsuarios")
-      .addEventListener("click", async (e) => {
-        const btn = e.target.closest("button[data-username]");
-        if (!btn) return;
-        if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) {
-          alert("Você não tem permissão para gerenciar usuários.");
+      document
+        .getElementById("btnSalvarObs")
+        .addEventListener("click", async () => {
+          const obs = document.getElementById("obsResolvido").value.trim();
+          const retornoNovo = document.getElementById(
+            "resolucaoRetorno"
+          ).value;
+          const dataResolucao = document.getElementById(
+            "dataResolucao"
+          ).value || getHojeISO();
+
+          if (atendimentoEmAlteracaoId) {
+            const ref = doc(db, "atendimentos", atendimentoEmAlteracaoId);
+            const atual = todosAtendimentos.find(
+              (x) => x.id === atendimentoEmAlteracaoId
+            );
+            let novasObs = atual?.observacoes || "";
+            if (obs) {
+              novasObs = novasObs ? `${novasObs} | ${obs}` : obs;
+            }
+            await updateDoc(ref, {
+              status: "Resolvido",
+              observacoes: novasObs,
+              retorno: retornoNovo,
+              dataResolucao
+            });
+          }
+          const modalObsEl = document.getElementById("modalObservacao");
+          const modalObsInstance = bootstrap.Modal.getInstance(modalObsEl);
+          modalObsInstance.hide();
+          atendimentoEmAlteracaoId = null;
+        });
+
+      const modalRelEl = document.getElementById("modalRelatorio");
+      const modalRel = new bootstrap.Modal(modalRelEl);
+
+      document.getElementById("fabRelatorio").addEventListener("click", () => {
+        if (!usuarioLogado?.permissoes?.podeGerarRelatorio) {
+          alert("Você não tem permissão para gerar relatórios.");
           return;
         }
-        const username = btn.dataset.username;
-        const action = btn.dataset.action;
+        const dataFiltro = document.getElementById("dataFiltro").value;
+        document.getElementById("relData").value = dataFiltro || getHojeISO();
+        const filtroSetor = document.getElementById("filtroSetor").value;
+        document.getElementById("relSetor").value =
+          filtroSetor || "Todos";
+        modalRel.show();
+      });
 
-        if (action === "salvar") {
-          const nome = document.getElementById(`nome-${username}`).value;
-          const perfil = document.getElementById(
-            `perfil-${username}`
-          ).value;
-          const ativo = document.getElementById(
-            `ativo-${username}`
-          ).checked;
-          const permReg = document.getElementById(
-            `permReg-${username}`
-          ).checked;
-          const permStatus = document.getElementById(
-            `permStatus-${username}`
-          ).checked;
-          const permRel = document.getElementById(
-            `permRel-${username}`
-          ).checked;
-          const permUsuarios = document.getElementById(
-            `permUsuarios-${username}`
-          ).checked;
-          const novaSenha = document.getElementById(
-            `novaSenha-${username}`
-          ).value;
+      document
+        .getElementById("btnGerarRelatorioConfirm")
+        .addEventListener("click", async () => {
+          const dataRel = document.getElementById("relData").value;
+          const setorRel = document.getElementById("relSetor").value;
+          await gerarPDF(dataRel, setorRel);
+        });
+
+      document
+        .getElementById("btnExportar")
+        .addEventListener("click", exportarDadosDoDia);
+
+      document.getElementById("btnImportar").addEventListener("click", () => {
+        document.getElementById("inputImportar").click();
+      });
+
+      document
+        .getElementById("inputImportar")
+        .addEventListener("change", (e) => {
+          const arquivo = e.target.files[0];
+          if (arquivo) {
+            importarDados(arquivo);
+            e.target.value = "";
+          }
+        });
+
+      document
+        .getElementById("tbodyUsuarios")
+        .addEventListener("click", async (e) => {
+          const btn = e.target.closest("button[data-username]");
+          if (!btn) return;
+          if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) {
+            alert("Você não tem permissão para gerenciar usuários.");
+            return;
+          }
+          const username = btn.dataset.username;
+          const action = btn.dataset.action;
+
+          if (action === "salvar") {
+            const nome = document.getElementById(`nome-${username}`).value;
+            const perfil = document.getElementById(
+              `perfil-${username}`
+            ).value;
+            const ativo = document.getElementById(
+              `ativo-${username}`
+            ).checked;
+            const permReg = document.getElementById(
+              `permReg-${username}`
+            ).checked;
+            const permStatus = document.getElementById(
+              `permStatus-${username}`
+            ).checked;
+            const permRel = document.getElementById(
+              `permRel-${username}`
+            ).checked;
+            const permUsuarios = document.getElementById(
+              `permUsuarios-${username}`
+            ).checked;
+            const novaSenha = document.getElementById(
+              `novaSenha-${username}`
+            ).value;
+
+            const ref = doc(db, "usuarios", username);
+            const updateData = {
+              nome,
+              perfil,
+              ativo,
+              permissoes: {
+                podeRegistrarAtendimento: permReg,
+                podeAlterarStatus: permStatus,
+                podeGerarRelatorio: permRel,
+                podeGerenciarUsuarios: permUsuarios
+              }
+            };
+            if (novaSenha) updateData.senha = novaSenha;
+
+            await updateDoc(ref, updateData);
+
+            if (usuarioLogado.username === username) {
+              usuarioLogado.perfil = perfil;
+              usuarioLogado.permissoes = {
+                podeRegistrarAtendimento: permReg,
+                podeAlterarStatus: permStatus,
+                podeGerarRelatorio: permRel,
+                podeGerenciarUsuarios: permUsuarios
+              };
+              atualizarHeaderUsuario();
+              aplicarPermissoesUI();
+            }
+
+            document.getElementById(`novaSenha-${username}`).value = "";
+            alert("Usuário atualizado com sucesso.");
+          } else if (action === "excluir") {
+            if (username === usuarioLogado.username) {
+              alert("Você não pode excluir o próprio usuário logado.");
+              return;
+            }
+            if (
+              !confirm(
+                "Tem certeza que deseja excluir este usuário? Essa ação não pode ser desfeita."
+              )
+            )
+              return;
+            await deleteDoc(doc(db, "usuarios", username));
+            alert("Usuário excluído com sucesso.");
+          }
+        });
+
+      document
+        .getElementById("formNovoUsuario")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) {
+            alert("Você não tem permissão para gerenciar usuários.");
+            return;
+          }
+
+          const username = document
+            .getElementById("novoUsername")
+            .value.trim();
+          const senha = document.getElementById("novoSenha").value;
+          const nome = document.getElementById("novoNome").value.trim();
+          const perfil = document.getElementById("novoPerfil").value;
+          const permReg =
+            document.getElementById("novoPermRegistrar").checked;
+          const permStatus =
+            document.getElementById("novoPermStatus").checked;
+          const permRel =
+            document.getElementById("novoPermRelatorio").checked;
+          const permUsuarios =
+            document.getElementById("novoPermGerUsuarios").checked;
+
+          if (!username || !senha || !nome || !perfil) {
+            alert("Preencha todos os campos do novo usuário.");
+            return;
+          }
+          if (/\s/.test(username)) {
+            alert("O usuário não pode conter espaços.");
+            return;
+          }
 
           const ref = doc(db, "usuarios", username);
-          const updateData = {
+          const snap = await getDoc(ref);
+          if (snap.exists()) {
+            alert("Já existe um usuário com esse identificador.");
+            return;
+          }
+
+          const novoUsuario = {
             nome,
             perfil,
-            ativo,
+            senha,
+            ativo: true,
             permissoes: {
               podeRegistrarAtendimento: permReg,
               podeAlterarStatus: permStatus,
@@ -2076,241 +2237,155 @@ https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js</script>
               podeGerenciarUsuarios: permUsuarios
             }
           };
-          if (novaSenha) updateData.senha = novaSenha;
+
+          await setDoc(ref, novoUsuario);
+
+          document.getElementById("formNovoUsuario").reset();
+          document.getElementById("novoPermRegistrar").checked = true;
+          document.getElementById("novoPermStatus").checked = true;
+          document.getElementById("novoPermRelatorio").checked = true;
+          document.getElementById("novoPermGerUsuarios").checked = false;
+        });
+
+      document
+        .getElementById("tbodySetores")
+        .addEventListener("click", async (e) => {
+          const btn = e.target.closest("button[data-setor-id]");
+          if (!btn) return;
+          if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) {
+            alert("Você não tem permissão para gerenciar setores.");
+            return;
+          }
+          const id = btn.dataset.setorId;
+          const action = btn.dataset.action;
+          const ref = doc(db, "setores", id);
+
+          if (action === "salvar") {
+            const nome = document.getElementById(
+              `setorNome-${id}`
+            ).value;
+            const ativo = document.getElementById(
+              `setorAtivo-${id}`
+            ).checked;
+            await updateDoc(ref, { nome, ativo });
+            alert("Setor atualizado com sucesso.");
+          } else if (action === "excluir") {
+            if (
+              !confirm(
+                "Tem certeza que deseja excluir este setor? Atendimentos antigos continuarão com o nome antigo."
+              )
+            )
+              return;
+            await deleteDoc(ref);
+          }
+        });
+
+      document
+        .getElementById("formNovoSetor")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) {
+            alert("Você não tem permissão para gerenciar setores.");
+            return;
+          }
+          const nome = document
+            .getElementById("novoSetorNome")
+            .value.trim();
+          if (!nome) {
+            alert("Informe o nome do setor.");
+            return;
+          }
+          await addDoc(collection(db, "setores"), { nome, ativo: true });
+          document.getElementById("novoSetorNome").value = "";
+        });
+
+      document
+        .getElementById("btnImportarAlunos")
+        .addEventListener("click", () => {
+          document.getElementById("inputImportarAlunos").click();
+        });
+
+      document
+        .getElementById("inputImportarAlunos")
+        .addEventListener("change", (e) => {
+          const arquivo = e.target.files[0];
+          if (arquivo) {
+            importarAlunos(arquivo);
+            e.target.value = "";
+          }
+        });
+
+      const modalPerfilEl = document.getElementById("modalPerfil");
+      const modalPerfil = new bootstrap.Modal(modalPerfilEl);
+
+      document.getElementById("btnPerfil").addEventListener("click", () => {
+        if (!usuarioLogado) return;
+        document.getElementById("perfilUsername").value =
+          usuarioLogado.username;
+        document.getElementById("perfilNome").value =
+          usuarioLogado.nome || "";
+        document.getElementById("perfilSenhaAtual").value = "";
+        document.getElementById("perfilSenhaNova").value = "";
+        document.getElementById("perfilSenhaConfirma").value = "";
+        modalPerfil.show();
+      });
+
+      document
+        .getElementById("btnSalvarPerfil")
+        .addEventListener("click", async () => {
+          if (!usuarioLogado) return;
+          const nomeNovo = document
+            .getElementById("perfilNome")
+            .value.trim();
+          const senhaAtual = document.getElementById(
+            "perfilSenhaAtual"
+          ).value;
+          const senhaNova = document.getElementById(
+            "perfilSenhaNova"
+          ).value;
+          const senhaConf = document.getElementById(
+            "perfilSenhaConfirma"
+          ).value;
+
+          if (!nomeNovo) {
+            alert("Informe o nome.");
+            return;
+          }
+
+          const ref = doc(db, "usuarios", usuarioLogado.username);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            alert("Usuário não encontrado. Faça login novamente.");
+            return;
+          }
+          const data = snap.data();
+
+          const updateData = { nome: nomeNovo };
+
+          if (senhaNova || senhaConf || senhaAtual) {
+            if (!senhaAtual) {
+              alert("Informe a senha atual para alterar a senha.");
+              return;
+            }
+            if (data.senha !== senhaAtual) {
+              alert("Senha atual incorreta.");
+              return;
+            }
+            if (!senhaNova || senhaNova !== senhaConf) {
+              alert("Confirme corretamente a nova senha.");
+              return;
+            }
+            updateData.senha = senhaNova;
+          }
 
           await updateDoc(ref, updateData);
-
-          if (usuarioLogado.username === username) {
-            usuarioLogado.perfil = perfil;
-            usuarioLogado.permissoes = {
-              podeRegistrarAtendimento: permReg,
-              podeAlterarStatus: permStatus,
-              podeGerarRelatorio: permRel,
-              podeGerenciarUsuarios: permUsuarios
-            };
-            atualizarHeaderUsuario();
-            aplicarPermissoesUI();
-          }
-
-          document.getElementById(`novaSenha-${username}`).value = "";
-          alert("Usuário atualizado com sucesso.");
-        } else if (action === "excluir") {
-          if (username === usuarioLogado.username) {
-            alert("Você não pode excluir o próprio usuário logado.");
-            return;
-          }
-          if (
-            !confirm(
-              "Tem certeza que deseja excluir este usuário? Essa ação não pode ser desfeita."
-            )
-          )
-            return;
-          await deleteDoc(doc(db, "usuarios", username));
-          alert("Usuário excluído com sucesso.");
-        }
-      });
-
-    document
-      .getElementById("formNovoUsuario")
-      .addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) {
-          alert("Você não tem permissão para gerenciar usuários.");
-          return;
-        }
-
-        const username = document
-          .getElementById("novoUsername")
-          .value.trim();
-        const senha = document.getElementById("novoSenha").value;
-        const nome = document.getElementById("novoNome").value.trim();
-        const perfil = document.getElementById("novoPerfil").value;
-        const permReg =
-          document.getElementById("novoPermRegistrar").checked;
-        const permStatus =
-          document.getElementById("novoPermStatus").checked;
-        const permRel =
-          document.getElementById("novoPermRelatorio").checked;
-        const permUsuarios =
-          document.getElementById("novoPermGerUsuarios").checked;
-
-        if (!username || !senha || !nome || !perfil) {
-          alert("Preencha todos os campos do novo usuário.");
-          return;
-        }
-        if (/\s/.test(username)) {
-          alert("O usuário não pode conter espaços.");
-          return;
-        }
-
-        const ref = doc(db, "usuarios", username);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          alert("Já existe um usuário com esse identificador.");
-          return;
-        }
-
-        const novoUsuario = {
-          nome,
-          perfil,
-          senha,
-          ativo: true,
-          permissoes: {
-            podeRegistrarAtendimento: permReg,
-            podeAlterarStatus: permStatus,
-            podeGerarRelatorio: permRel,
-            podeGerenciarUsuarios: permUsuarios
-          }
-        };
-
-        await setDoc(ref, novoUsuario);
-
-        document.getElementById("formNovoUsuario").reset();
-        document.getElementById("novoPermRegistrar").checked = true;
-        document.getElementById("novoPermStatus").checked = true;
-        document.getElementById("novoPermRelatorio").checked = true;
-        document.getElementById("novoPermGerUsuarios").checked = false;
-      });
-
-    document
-      .getElementById("tbodySetores")
-      .addEventListener("click", async (e) => {
-        const btn = e.target.closest("button[data-setor-id]");
-        if (!btn) return;
-        if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) {
-          alert("Você não tem permissão para gerenciar setores.");
-          return;
-        }
-        const id = btn.dataset.setorId;
-        const action = btn.dataset.action;
-        const ref = doc(db, "setores", id);
-
-        if (action === "salvar") {
-          const nome = document.getElementById(
-            `setorNome-${id}`
-          ).value;
-          const ativo = document.getElementById(
-            `setorAtivo-${id}`
-          ).checked;
-          await updateDoc(ref, { nome, ativo });
-          alert("Setor atualizado com sucesso.");
-        } else if (action === "excluir") {
-          if (
-            !confirm(
-              "Tem certeza que deseja excluir este setor? Atendimentos antigos continuarão com o nome antigo."
-            )
-          )
-            return;
-          await deleteDoc(ref);
-        }
-      });
-
-    document
-      .getElementById("formNovoSetor")
-      .addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) {
-          alert("Você não tem permissão para gerenciar setores.");
-          return;
-        }
-        const nome = document
-          .getElementById("novoSetorNome")
-          .value.trim();
-        if (!nome) {
-          alert("Informe o nome do setor.");
-          return;
-        }
-        await addDoc(collection(db, "setores"), { nome, ativo: true });
-        document.getElementById("novoSetorNome").value = "";
-      });
-
-    document
-      .getElementById("btnImportarAlunos")
-      .addEventListener("click", () => {
-        document.getElementById("inputImportarAlunos").click();
-      });
-
-    document
-      .getElementById("inputImportarAlunos")
-      .addEventListener("change", (e) => {
-        const arquivo = e.target.files[0];
-        if (arquivo) {
-          importarAlunos(arquivo);
-          e.target.value = "";
-        }
-      });
-
-    const modalPerfilEl = document.getElementById("modalPerfil");
-    const modalPerfil = new bootstrap.Modal(modalPerfilEl);
-
-    document.getElementById("btnPerfil").addEventListener("click", () => {
-      if (!usuarioLogado) return;
-      document.getElementById("perfilUsername").value =
-        usuarioLogado.username;
-      document.getElementById("perfilNome").value =
-        usuarioLogado.nome || "";
-      document.getElementById("perfilSenhaAtual").value = "";
-      document.getElementById("perfilSenhaNova").value = "";
-      document.getElementById("perfilSenhaConfirma").value = "";
-      modalPerfil.show();
+          usuarioLogado.nome = nomeNovo;
+          atualizarHeaderUsuario();
+          alert("Perfil atualizado com sucesso.");
+          modalPerfil.hide();
+        });
     });
-
-    document
-      .getElementById("btnSalvarPerfil")
-      .addEventListener("click", async () => {
-        if (!usuarioLogado) return;
-        const nomeNovo = document
-          .getElementById("perfilNome")
-          .value.trim();
-        const senhaAtual = document.getElementById(
-          "perfilSenhaAtual"
-        ).value;
-        const senhaNova = document.getElementById(
-          "perfilSenhaNova"
-        ).value;
-        const senhaConf = document.getElementById(
-          "perfilSenhaConfirma"
-        ).value;
-
-        if (!nomeNovo) {
-          alert("Informe o nome.");
-          return;
-        }
-
-        const ref = doc(db, "usuarios", usuarioLogado.username);
-        const snap = await getDoc(ref);
-        if (!snap.exists()) {
-          alert("Usuário não encontrado. Faça login novamente.");
-          return;
-        }
-        const data = snap.data();
-
-        const updateData = { nome: nomeNovo };
-
-        if (senhaNova || senhaConf || senhaAtual) {
-          if (!senhaAtual) {
-            alert("Informe a senha atual para alterar a senha.");
-            return;
-          }
-          if (data.senha !== senhaAtual) {
-            alert("Senha atual incorreta.");
-            return;
-          }
-          if (!senhaNova || senhaNova !== senhaConf) {
-            alert("Confirme corretamente a nova senha.");
-            return;
-          }
-          updateData.senha = senhaNova;
-        }
-
-        await updateDoc(ref, updateData);
-        usuarioLogado.nome = nomeNovo;
-        atualizarHeaderUsuario();
-        alert("Perfil atualizado com sucesso.");
-        modalPerfil.hide();
-      });
-  });
-</script>
+  </script>
 </body>
 </html>
 ``
