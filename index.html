@@ -6,10 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Bootstrap CSS -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
+  https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css
 
   <style>
     body {
@@ -243,7 +240,7 @@
       </div>
     </div>
 
-    <!-- Gestão de usuários / setores / alunos -->
+    <!-- Gestão administrativa (usuários, setores, alunos) -->
     <div id="gestaoUsuariosCard" class="card mb-4" style="display: none;">
       <div class="card-header bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center">
         <div>
@@ -538,7 +535,7 @@
               <label for="dataAtendimentoVisivel" class="form-label">Data do atendimento</label>
               <input type="date" id="dataAtendimentoVisivel" class="form-control" />
               <input type="hidden" id="dataAtendimento" />
-              <div class="form-text">Por padrão, usa a mesma data do filtro (pode alterar).</div>
+              <div class="form-text">Por padrão, usa a data de hoje. Só permite hoje ou datas futuras.</div>
             </div>
 
             <div class="mb-3">
@@ -560,7 +557,7 @@
             <div class="mb-3">
               <label for="setor" class="form-label">Setor responsável</label>
               <select id="setor" class="form-select" required>
-                <option value="">Carregando setores...</option>
+                <option value="">Sem setores cadastrados</option>
               </select>
             </div>
 
@@ -620,6 +617,18 @@
           <p class="mb-2">
             Você está marcando este atendimento como <strong>Resolvido</strong>.
           </p>
+          <div class="mb-3">
+            <label for="resolucaoRetorno" class="form-label">Retorno do setor</label>
+            <select id="resolucaoRetorno" class="form-select">
+              <option value="Sem retorno">Sem retorno</option>
+              <option value="Retorno recebido">Retorno recebido</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="dataResolucao" class="form-label">Data da resolução</label>
+            <input type="date" id="dataResolucao" class="form-control" />
+            <div class="form-text">Por padrão, usa a data de hoje. Você pode ajustar se necessário.</div>
+          </div>
           <label for="obsResolvido" class="form-label">Observação (opcional)</label>
           <textarea
             id="obsResolvido"
@@ -712,14 +721,14 @@
 </div>
 
 <!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js</script>
 
 <!-- jsPDF + AutoTable -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js</script>
+https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js</script>
 
 <!-- PDF.js para leitura de PDFs -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js</script>
 
 <!-- Firebase + App (ES Module) -->
 <script type="module">
@@ -744,9 +753,6 @@
     uploadBytes
   } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
-  // ==========================
-  // CONFIGURAÇÃO DO SEU FIREBASE
-  // ==========================
   const firebaseConfig = {
     apiKey: "AIzaSyCcOEXLRlUAE1LDqCGY4gXDzR-VrEwWxZY",
     authDomain: "atendimento-escolar.firebaseapp.com",
@@ -761,20 +767,16 @@
   const db = getFirestore(app);
   const storage = getStorage(app);
 
-  // PDF.js global
   const pdfjsLib = window["pdfjsLib"];
   if (pdfjsLib) {
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
   }
 
-  // ==========================
-  // Estado global
-  // ==========================
   const STORAGE_KEY_USUARIO = "atendimentos_usuario_logado";
   const STORAGE_KEY_MANTER = "atendimentos_manter_login";
   let usuarioLogado = null;
-  let atendimentosDoDia = [];
+  let todosAtendimentos = [];
   let unsubscribeAtendimentos = null;
   let unsubscribeUsuarios = null;
   let unsubscribeSetores = null;
@@ -783,11 +785,8 @@
   let listaSetores = [];
   let listaAlunos = [];
 
-  // =====================
-  // Utilitários de data
-  // =====================
   function getHojeISO() {
-    return new Date().toISOString().slice(0, 10); // yyyy-mm-dd
+    return new Date().toISOString().slice(0, 10);
   }
 
   function formatarDataBR(iso) {
@@ -806,9 +805,6 @@
     return `${dia}/${mes}/${ano} ${hora}:${min}`;
   }
 
-  // ==========================
-  // Login / Usuário
-  // ==========================
   async function carregarUsuarioLogadoLocal() {
     const manter = localStorage.getItem(STORAGE_KEY_MANTER) === "true";
     if (!manter) {
@@ -846,7 +842,6 @@
     const ref = doc(db, "usuarios", username);
     let snap = await getDoc(ref);
 
-    // Se não existir e for master/123, cria automático
     if (!snap.exists() && username === "master" && senha === "123") {
       const novoMaster = {
         nome: "Master",
@@ -864,14 +859,9 @@
       snap = await getDoc(ref);
     }
 
-    if (!snap.exists()) {
-      return false;
-    }
-
+    if (!snap.exists()) return false;
     const data = snap.data();
-    if (data.senha !== senha) {
-      return false;
-    }
+    if (data.senha !== senha) return false;
     if (data.ativo === false) {
       alert("Usuário inativo. Procure o administrador.");
       return false;
@@ -929,10 +919,7 @@
     document.getElementById("appContainer").style.display = "none";
   }
 
-  // ==========================
-  // Listeners Firestore
-  // ==========================
-  function iniciarListenerAtendimentos(dataFiltro) {
+  function iniciarListenerAtendimentos() {
     if (unsubscribeAtendimentos) {
       unsubscribeAtendimentos();
       unsubscribeAtendimentos = null;
@@ -941,12 +928,9 @@
     unsubscribeAtendimentos = onSnapshot(
       ref,
       (snapshot) => {
-        atendimentosDoDia = [];
+        todosAtendimentos = [];
         snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          if (data.dataAtendimento === dataFiltro) {
-            atendimentosDoDia.push({ id: docSnap.id, ...data });
-          }
+          todosAtendimentos.push({ id: docSnap.id, ...docSnap.data() });
         });
         renderizarAtendimentos();
         renderizarResumoSetores();
@@ -959,12 +943,10 @@
 
   function iniciarListenerUsuarios() {
     if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) return;
-
     if (unsubscribeUsuarios) {
       unsubscribeUsuarios();
       unsubscribeUsuarios = null;
     }
-
     const usuariosRef = collection(db, "usuarios");
     unsubscribeUsuarios = onSnapshot(
       usuariosRef,
@@ -1074,24 +1056,7 @@
     const setoresRef = collection(db, "setores");
     unsubscribeSetores = onSnapshot(
       setoresRef,
-      async (snapshot) => {
-        if (snapshot.empty) {
-          // Seed inicial de setores
-          const defaultSetores = [
-            "Secretaria",
-            "Coordenação",
-            "Direção",
-            "Pedagógico",
-            "Financeiro",
-            "Orientação",
-            "Outro"
-          ];
-          for (const nome of defaultSetores) {
-            await addDoc(setoresRef, { nome, ativo: true });
-          }
-          return;
-        }
-
+      (snapshot) => {
         listaSetores = [];
         const tbody = document.getElementById("tbodySetores");
         tbody.innerHTML = "";
@@ -1165,7 +1130,6 @@
 
     const setoresAtivos = listaSetores.filter((s) => s.ativo !== false);
 
-    // Select do modal de atendimento
     setorSelect.innerHTML = "";
     if (setoresAtivos.length === 0) {
       const opt = document.createElement("option");
@@ -1185,7 +1149,6 @@
       });
     }
 
-    // Filtro de setor na lista
     filtroSetor.innerHTML = "";
     const optTodos = document.createElement("option");
     optTodos.value = "Todos";
@@ -1198,7 +1161,6 @@
       filtroSetor.appendChild(o);
     });
 
-    // Filtro de setor no relatório
     relSetor.innerHTML = "";
     const optTodos2 = document.createElement("option");
     optTodos2.value = "Todos";
@@ -1223,9 +1185,6 @@
     });
   }
 
-  // ==========================
-  // Renderização Atendimentos
-  // ==========================
   function renderizarAtendimentos() {
     const tbody = document.getElementById("tbodyAtendimentos");
     tbody.innerHTML = "";
@@ -1234,7 +1193,18 @@
     const filtroSetor = document.getElementById("filtroSetor").value || "Todos";
     const hojeISO = getHojeISO();
 
-    const filtrados = atendimentosDoDia.filter((a) =>
+    const basePorData = todosAtendimentos.filter((a) => {
+      if (dataFiltro === hojeISO) {
+        return (
+          a.dataAtendimento === dataFiltro ||
+          (a.status === "Pendente" && a.dataAtendimento < dataFiltro)
+        );
+      } else {
+        return a.dataAtendimento === dataFiltro;
+      }
+    });
+
+    const filtrados = basePorData.filter((a) =>
       filtroSetor === "Todos" ? true : a.setor === filtroSetor
     );
 
@@ -1337,6 +1307,9 @@
         } else {
           atendimentoEmAlteracaoId = a.id;
           document.getElementById("obsResolvido").value = "";
+          document.getElementById("resolucaoRetorno").value =
+            a.retorno || "Retorno recebido";
+          document.getElementById("dataResolucao").value = getHojeISO();
           const modalObs = new bootstrap.Modal(
             document.getElementById("modalObservacao")
           );
@@ -1367,20 +1340,30 @@
     });
   }
 
-  // ==========================
-  // Resumo por setor
-  // ==========================
   function renderizarResumoSetores() {
     const container = document.getElementById("resumoSetores");
     const msgVazio = document.getElementById("resumoSetoresVazio");
     const filtroSetor = document.getElementById("filtroSetor").value || "Todos";
+    const dataFiltro = document.getElementById("dataFiltro").value;
+    const hojeISO = getHojeISO();
 
-    container.innerHTML = "";
+    const basePorData = todosAtendimentos.filter((a) => {
+      if (dataFiltro === hojeISO) {
+        return (
+          a.dataAtendimento === dataFiltro ||
+          (a.status === "Pendente" && a.dataAtendimento < dataFiltro)
+        );
+      } else {
+        return a.dataAtendimento === dataFiltro;
+      }
+    });
 
     const listaBase =
       filtroSetor === "Todos"
-        ? atendimentosDoDia
-        : atendimentosDoDia.filter((a) => a.setor === filtroSetor);
+        ? basePorData
+        : basePorData.filter((a) => a.setor === filtroSetor);
+
+    container.innerHTML = "";
 
     if (listaBase.length === 0) {
       msgVazio.style.display = "block";
@@ -1416,14 +1399,15 @@
     });
   }
 
-  // ==========================
-  // Editar atendimento
-  // ==========================
   function abrirEdicaoAtendimento(id) {
-    const a = atendimentosDoDia.find((x) => x.id === id);
+    const a = todosAtendimentos.find((x) => x.id === id);
     if (!a) return;
     const modalNovoEl = document.getElementById("modalNovoAtendimento");
     const modalNovo = new bootstrap.Modal(modalNovoEl);
+
+    const campoDataAtendimentoVisivel =
+      document.getElementById("dataAtendimentoVisivel");
+    campoDataAtendimentoVisivel.removeAttribute("min");
 
     document.getElementById("atendimentoEditandoId").value = a.id;
     document.getElementById("dataAtendimentoVisivel").value =
@@ -1442,9 +1426,6 @@
     modalNovo.show();
   }
 
-  // ==========================
-  // Geração de PDF (por data e setor)
-  // ==========================
   async function gerarPDF(dataISO, setorFiltro) {
     if (!window.jspdf) {
       alert("Biblioteca jsPDF não carregada.");
@@ -1565,16 +1546,27 @@
     docPdf.save(nomeArquivo);
   }
 
-  // ==========================
-  // Exportar / Importar JSON
-  // ==========================
   function exportarDadosDoDia() {
-    if (atendimentosDoDia.length === 0) {
+    const dataFiltro = document.getElementById("dataFiltro").value;
+    const hojeISO = getHojeISO();
+
+    const basePorData = todosAtendimentos.filter((a) => {
+      if (dataFiltro === hojeISO) {
+        return (
+          a.dataAtendimento === dataFiltro ||
+          (a.status === "Pendente" && a.dataAtendimento < dataFiltro)
+        );
+      } else {
+        return a.dataAtendimento === dataFiltro;
+      }
+    });
+
+    if (basePorData.length === 0) {
       alert("Não há dados para exportar nesta data.");
       return;
     }
-    const dataFiltro = document.getElementById("dataFiltro").value;
-    const blob = new Blob([JSON.stringify(atendimentosDoDia, null, 2)], {
+
+    const blob = new Blob([JSON.stringify(basePorData, null, 2)], {
       type: "application/json"
     });
     const url = URL.createObjectURL(blob);
@@ -1610,17 +1602,11 @@
     leitor.readAsText(arquivo, "utf-8");
   }
 
-  // ==========================
-  // Importar alunos (PDF + JSON)
-  // ==========================
   async function limparColecaoAlunos() {
     const ref = collection(db, "alunos");
     const snap = await getDocs(ref);
-    const batchDeletes = [];
-    for (const docSnap of snap.docs) {
-      batchDeletes.push(deleteDoc(docSnap.ref));
-    }
-    await Promise.all(batchDeletes);
+    const deletions = snap.docs.map((d) => deleteDoc(d.ref));
+    await Promise.all(deletions);
   }
 
   async function importarAlunosJSON(arquivo) {
@@ -1638,7 +1624,7 @@
           if (!al.nome || !al.serie) continue;
           await addDoc(ref, {
             nome: al.nome,
-            serie: al.serie // código cru, opção A
+            serie: al.serie
           });
         }
         alert("Alunos importados com sucesso (JSON).");
@@ -1655,9 +1641,7 @@
       alert("Biblioteca PDF.js não carregada.");
       return;
     }
-
     try {
-      // Salvar PDF no Storage (substitui anterior)
       const pdfStorageRef = storageRef(storage, "ensalamento/atual.pdf");
       await uploadBytes(pdfStorageRef, arquivo);
 
@@ -1673,19 +1657,14 @@
             const textContent = await page.getTextContent();
             const pageText = textContent.items.map((i) => i.str).join(" ");
 
-            // Série: último código em parênteses com letras/números antes de "Ano Letivo"
             const serieMatch = pageText.match(/\(([A-Z0-9]{6,})\)[^()]*Ano Letivo/);
             if (!serieMatch) continue;
-            const serieCodigo = serieMatch[1]; // Ex.: EINFA03MA
+            const serieCodigo = serieMatch[1];
 
-            // Regex para Nome + RA (6 dígitos) + nº + data
             const re = /([A-ZÁ-Úa-zá-úçÇ'´` ]+?)\s+(\d{6})\s+\d+\s+\d{2}\/\d{2}\/\d{4}/g;
             let m;
             while ((m = re.exec(pageText)) !== null) {
               let nome = m[1].trim();
-              const ra = m[2];
-
-              // Filtrar cabeçalhos e textos não-aluno
               if (
                 /RA Nº|Nome Status|Tipo de Ingresso|Total Aluno Novo|Total Rematrícula/i.test(
                   nome
@@ -1693,13 +1672,10 @@
               ) {
                 continue;
               }
-
-              // Nome só com letras/acentos/espaço, evitando sujeira
               if (!/[A-Za-zÁ-Úá-úçÇ]/.test(nome)) continue;
-
               todosAlunos.push({
                 nome,
-                serie: serieCodigo // armazenando código puro (opção A)
+                serie: serieCodigo
               });
             }
           }
@@ -1709,7 +1685,6 @@
             return;
           }
 
-          // Limpa coleção 'alunos' e grava novamente
           await limparColecaoAlunos();
           const refAlunos = collection(db, "alunos");
           for (const al of todosAlunos) {
@@ -1742,9 +1717,6 @@
     }
   }
 
-  // ==========================
-  // Inicialização
-  // ==========================
   document.addEventListener("DOMContentLoaded", async () => {
     const campoDataFiltro = document.getElementById("dataFiltro");
     const campoDataAtendimento = document.getElementById("dataAtendimento");
@@ -1756,22 +1728,18 @@
     campoDataAtendimento.value = hoje;
     campoDataAtendimentoVisivel.value = hoje;
 
-    // Mostrar/ocultar senha no login
     document
       .getElementById("btnToggleSenha")
       .addEventListener("click", () => {
         const input = document.getElementById("loginSenha");
-        const isPass = input.type === "password";
-        input.type = isPass ? "text" : "password";
+        input.type = input.type === "password" ? "text" : "password";
       });
 
-    // Sincronizar data visível e oculta no modal
     campoDataAtendimentoVisivel.addEventListener("change", () => {
       campoDataAtendimento.value =
         campoDataAtendimentoVisivel.value || getHojeISO();
     });
 
-    // Ocultar dica do master se ele já existir
     try {
       const masterSnap = await getDoc(doc(db, "usuarios", "master"));
       if (masterSnap.exists()) {
@@ -1782,12 +1750,11 @@
       console.error("Erro ao verificar usuário master:", e);
     }
 
-    // Tentativa de restaurar usuário logado (manter login)
     await carregarUsuarioLogadoLocal();
 
     if (usuarioLogado) {
       exibirApp();
-      iniciarListenerAtendimentos(campoDataFiltro.value);
+      iniciarListenerAtendimentos();
       iniciarListenerSetores();
       iniciarListenerAlunos();
       if (usuarioLogado.permissoes?.podeGerenciarUsuarios) {
@@ -1797,7 +1764,6 @@
       exibirLogin();
     }
 
-    // LOGIN
     document
       .getElementById("formLogin")
       .addEventListener("submit", async (e) => {
@@ -1824,7 +1790,7 @@
         document.getElementById("loginUsuario").value = "";
         document.getElementById("loginSenha").value = "";
         exibirApp();
-        iniciarListenerAtendimentos(campoDataFiltro.value);
+        iniciarListenerAtendimentos();
         iniciarListenerSetores();
         iniciarListenerAlunos();
         if (usuarioLogado.permissoes?.podeGerenciarUsuarios) {
@@ -1832,7 +1798,6 @@
         }
       });
 
-    // LOGOUT
     document.getElementById("btnLogout").addEventListener("click", () => {
       usuarioLogado = null;
       localStorage.removeItem(STORAGE_KEY_USUARIO);
@@ -1841,24 +1806,18 @@
       if (unsubscribeUsuarios) unsubscribeUsuarios();
       if (unsubscribeSetores) unsubscribeSetores();
       if (unsubscribeAlunos) unsubscribeAlunos();
-      atendimentosDoDia = [];
+      todosAtendimentos = [];
       document.getElementById("tbodyAtendimentos").innerHTML = "";
       document.getElementById("resumoSetores").innerHTML = "";
       document.getElementById("resumoSetoresVazio").style.display = "block";
       exibirLogin();
     });
 
-    // Alteração da data de filtro
     campoDataFiltro.addEventListener("change", () => {
-      campoDataAtendimento.value = campoDataFiltro.value || getHojeISO();
-      campoDataAtendimentoVisivel.value =
-        campoDataFiltro.value || getHojeISO();
-      if (usuarioLogado) {
-        iniciarListenerAtendimentos(campoDataFiltro.value);
-      }
+      renderizarAtendimentos();
+      renderizarResumoSetores();
     });
 
-    // Filtro por setor
     document
       .getElementById("filtroSetor")
       .addEventListener("change", () => {
@@ -1866,7 +1825,6 @@
         renderizarResumoSetores();
       });
 
-    // Mostrar/ocultar detalhes de gestão
     document
       .getElementById("btnToggleGestaoDetalhes")
       .addEventListener("click", () => {
@@ -1874,7 +1832,6 @@
         el.style.display = el.style.display === "none" ? "block" : "none";
       });
 
-    // Mostrar/ocultar tabela de usuários
     document
       .getElementById("btnToggleTabelaUsuarios")
       .addEventListener("click", () => {
@@ -1882,7 +1839,6 @@
         el.style.display = el.style.display === "none" ? "block" : "none";
       });
 
-    // Mostrar/ocultar tabela de setores
     document
       .getElementById("btnToggleTabelaSetores")
       .addEventListener("click", () => {
@@ -1890,32 +1846,32 @@
         el.style.display = el.style.display === "none" ? "block" : "none";
       });
 
-    // MODAL novo atendimento
     const modalNovoEl = document.getElementById("modalNovoAtendimento");
     const modalNovo = new bootstrap.Modal(modalNovoEl);
 
-    // FAB Novo atendimento
     document.getElementById("fabNovo").addEventListener("click", () => {
       if (!usuarioLogado?.permissoes?.podeRegistrarAtendimento) {
         alert("Você não tem permissão para registrar atendimentos.");
         return;
       }
-      campoDataAtendimento.value = campoDataFiltro.value || getHojeISO();
-      campoDataAtendimentoVisivel.value =
-        campoDataFiltro.value || getHojeISO();
+      const hoje = getHojeISO();
+      campoDataAtendimento.value = hoje;
+      campoDataAtendimentoVisivel.value = hoje;
+      campoDataAtendimentoVisivel.min = hoje;
       document.getElementById("formAtendimento").reset();
       document.getElementById("atendimentoEditandoId").value = "";
+      campoDataAtendimento.value = hoje;
+      campoDataAtendimentoVisivel.value = hoje;
+      campoDataAtendimentoVisivel.min = hoje;
       modalNovo.show();
     });
 
-    // Auto-preencher série ao escolher aluno
     document.getElementById("nomeAluno").addEventListener("change", () => {
       const nome = document.getElementById("nomeAluno").value.trim();
       const aluno = listaAlunos.find((a) => a.nome === nome);
       document.getElementById("serieAluno").value = aluno?.serie || "";
     });
 
-    // Salvar novo/editar atendimento
     document
       .getElementById("btnSalvarAtendimento")
       .addEventListener("click", async () => {
@@ -1942,7 +1898,13 @@
           .getElementById("observacoes")
           .value.trim();
         const dataAtendimento =
-          campoDataAtendimento.value || getHojeISO();
+          document.getElementById("dataAtendimento").value || getHojeISO();
+
+        const hojeISO = getHojeISO();
+        if (dataAtendimento < hojeISO) {
+          alert("Não é permitido registrar atendimentos com data retroativa.");
+          return;
+        }
 
         if (
           !nomeAluno ||
@@ -1991,14 +1953,20 @@
         modalNovo.hide();
       });
 
-    // Salvar observação ao marcar resolvido
     document
       .getElementById("btnSalvarObs")
       .addEventListener("click", async () => {
         const obs = document.getElementById("obsResolvido").value.trim();
+        const retornoNovo = document.getElementById(
+          "resolucaoRetorno"
+        ).value;
+        const dataResolucao = document.getElementById(
+          "dataResolucao"
+        ).value || getHojeISO();
+
         if (atendimentoEmAlteracaoId) {
           const ref = doc(db, "atendimentos", atendimentoEmAlteracaoId);
-          const atual = atendimentosDoDia.find(
+          const atual = todosAtendimentos.find(
             (x) => x.id === atendimentoEmAlteracaoId
           );
           let novasObs = atual?.observacoes || "";
@@ -2007,7 +1975,9 @@
           }
           await updateDoc(ref, {
             status: "Resolvido",
-            observacoes: novasObs
+            observacoes: novasObs,
+            retorno: retornoNovo,
+            dataResolucao
           });
         }
         const modalObsEl = document.getElementById("modalObservacao");
@@ -2016,7 +1986,6 @@
         atendimentoEmAlteracaoId = null;
       });
 
-    // FAB Relatório → abre modal de filtro
     const modalRelEl = document.getElementById("modalRelatorio");
     const modalRel = new bootstrap.Modal(modalRelEl);
 
@@ -2036,12 +2005,11 @@
     document
       .getElementById("btnGerarRelatorioConfirm")
       .addEventListener("click", async () => {
-        const dataRel = document.getElementById("relData").value;
-        const setorRel = document.getElementById("relSetor").value;
-        await gerarPDF(dataRel, setorRel);
-      });
+      const dataRel = document.getElementById("relData").value;
+      const setorRel = document.getElementById("relSetor").value;
+      await gerarPDF(dataRel, setorRel);
+    });
 
-    // Exportar / Importar atendimentos
     document
       .getElementById("btnExportar")
       .addEventListener("click", exportarDadosDoDia);
@@ -2060,7 +2028,6 @@
         }
       });
 
-    // Gestão de usuários: salvar/Excluir por linha
     document
       .getElementById("tbodyUsuarios")
       .addEventListener("click", async (e) => {
@@ -2109,9 +2076,8 @@
               podeGerenciarUsuarios: permUsuarios
             }
           };
-          if (novaSenha) {
-            updateData.senha = novaSenha;
-          }
+          if (novaSenha) updateData.senha = novaSenha;
+
           await updateDoc(ref, updateData);
 
           if (usuarioLogado.username === username) {
@@ -2122,9 +2088,6 @@
               podeGerarRelatorio: permRel,
               podeGerenciarUsuarios: permUsuarios
             };
-            if (novaSenha) {
-              // Se alterou a própria senha, nada mais a fazer aqui
-            }
             atualizarHeaderUsuario();
             aplicarPermissoesUI();
           }
@@ -2147,7 +2110,6 @@
         }
       });
 
-    // Gestão de usuários: criar novo
     document
       .getElementById("formNovoUsuario")
       .addEventListener("submit", async (e) => {
@@ -2210,7 +2172,6 @@
         document.getElementById("novoPermGerUsuarios").checked = false;
       });
 
-    // Gestão de setores: salvar/excluir
     document
       .getElementById("tbodySetores")
       .addEventListener("click", async (e) => {
@@ -2244,7 +2205,6 @@
         }
       });
 
-    // Gestão de setores: criar novo
     document
       .getElementById("formNovoSetor")
       .addEventListener("submit", async (e) => {
@@ -2264,7 +2224,6 @@
         document.getElementById("novoSetorNome").value = "";
       });
 
-    // Importar alunos (PDF ou JSON)
     document
       .getElementById("btnImportarAlunos")
       .addEventListener("click", () => {
@@ -2281,7 +2240,6 @@
         }
       });
 
-    // Meu perfil
     const modalPerfilEl = document.getElementById("modalPerfil");
     const modalPerfil = new bootstrap.Modal(modalPerfilEl);
 
@@ -2355,3 +2313,4 @@
 </script>
 </body>
 </html>
+``
