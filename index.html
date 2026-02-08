@@ -243,13 +243,18 @@
       </div>
     </div>
 
-    <!-- Gestão de usuários (apenas master/admin) -->
+    <!-- Gestão de usuários / setores / alunos -->
     <div id="gestaoUsuariosCard" class="card mb-4" style="display: none;">
-      <div class="card-header bg-white border-bottom d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
-        <strong>Gestão de usuários</strong>
-        <small class="text-muted">Apenas usuários com permissão de administração</small>
+      <div class="card-header bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center">
+        <div>
+          <strong>Gestão administrativa</strong>
+          <div class="small text-muted">Usuários, setores e base de alunos</div>
+        </div>
+        <button id="btnToggleGestaoDetalhes" class="btn btn-sm btn-outline-secondary">
+          Mostrar/ocultar detalhes
+        </button>
       </div>
-      <div class="card-body">
+      <div class="card-body" id="gestaoDetalhes" style="display:none;">
         <div class="row g-3">
           <!-- Form novo usuário -->
           <div class="col-lg-4">
@@ -301,7 +306,7 @@
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="novoPermGerUsuarios" />
                   <label class="form-check-label" for="novoPermGerUsuarios">
-                    Gerenciar usuários e setores
+                    Gerenciar usuários, setores e alunos
                   </label>
                 </div>
               </div>
@@ -311,28 +316,33 @@
             </form>
           </div>
 
-          <!-- Lista de usuários -->
+          <!-- Lista de usuários (recolhível) -->
           <div class="col-lg-8">
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
               <h6 class="mb-0">Usuários cadastrados</h6>
-              <small class="text-muted">Você pode editar, desativar ou remover usuários.</small>
+              <button id="btnToggleTabelaUsuarios" class="btn btn-sm btn-outline-secondary">
+                Mostrar/ocultar tabela
+              </button>
             </div>
-            <div class="table-responsive" style="max-height: 260px;">
-              <table class="table table-sm align-middle">
-                <thead>
-                  <tr>
-                    <th>Usuário</th>
-                    <th>Nome</th>
-                    <th>Perfil</th>
-                    <th>Ativo</th>
-                    <th>Permissões</th>
-                    <th class="text-center">Ações</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyUsuarios">
-                  <!-- via JS -->
-                </tbody>
-              </table>
+            <div id="usuariosTabelaWrapper" style="display:none;">
+              <div class="table-responsive" style="max-height: 260px;">
+                <table class="table table-sm align-middle">
+                  <thead>
+                    <tr>
+                      <th>Usuário</th>
+                      <th>Nome</th>
+                      <th>Perfil</th>
+                      <th>Ativo</th>
+                      <th>Permissões</th>
+                      <th>Nova senha</th>
+                      <th class="text-center">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyUsuarios">
+                    <!-- via JS -->
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -354,20 +364,27 @@
             </form>
           </div>
           <div class="col-lg-8">
-            <h6 class="mb-2">Setores cadastrados</h6>
-            <div class="table-responsive" style="max-height: 220px;">
-              <table class="table table-sm align-middle">
-                <thead>
-                  <tr>
-                    <th>Setor</th>
-                    <th>Ativo</th>
-                    <th class="text-center">Ações</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodySetores">
-                  <!-- via JS -->
-                </tbody>
-              </table>
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <h6 class="mb-0">Setores cadastrados</h6>
+              <button id="btnToggleTabelaSetores" class="btn btn-sm btn-outline-secondary">
+                Mostrar/ocultar tabela
+              </button>
+            </div>
+            <div id="setoresTabelaWrapper" style="display:none;">
+              <div class="table-responsive" style="max-height: 220px;">
+                <table class="table table-sm align-middle">
+                  <thead>
+                    <tr>
+                      <th>Setor</th>
+                      <th>Ativo</th>
+                      <th class="text-center">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodySetores">
+                    <!-- via JS -->
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -377,20 +394,24 @@
         <!-- Importação de alunos -->
         <div class="row g-3">
           <div class="col-lg-6">
-            <h6 class="mb-2">Importar lista de alunos</h6>
+            <h6 class="mb-2">Importar lista de alunos (PDF ensalamento)</h6>
             <p class="text-muted small mb-2">
-              Formato recomendado: arquivo <code>.json</code> com uma lista de objetos no padrão:<br />
-              <code>[{"nome": "Aluno X", "serie": "6º ano"}, ...]</code>
+              Use o relatório oficial de ensalamento em PDF (como <code>260203 - ENSALAMENTO - 03 FEVEREIRO 26.pdf</code>).<br>
+              O sistema lê a série entre parênteses (ex.: <code>(EINFA03MA)</code>) e os nomes dos alunos, salvando<br>
+              <strong>nome</strong> + <strong>código da série</strong> exatamente como no documento.
             </p>
             <button id="btnImportarAlunos" class="btn btn-sm btn-outline-primary">
-              Importar alunos (.json)
+              Importar alunos (PDF ou JSON)
             </button>
-            <input type="file" id="inputImportarAlunos" accept=".json" class="d-none" />
+            <input type="file" id="inputImportarAlunos" accept=".pdf,.json" class="d-none" />
+            <small class="text-muted d-block mt-2">
+              O PDF importado é salvo no Firebase Storage em <code>ensalamento/atual.pdf</code>. Um novo envio substitui o anterior.
+            </small>
           </div>
           <div class="col-lg-6">
             <h6 class="mb-2">Alunos cadastrados (auto-completar)</h6>
             <small class="text-muted">
-              Ao digitar o nome no atendimento, aparecerão sugestões com nome e série dos alunos importados.
+              Ao digitar o nome no atendimento, aparecerão sugestões com nome e código de série (ex.: <code>EINFA03MA</code>).
             </small>
           </div>
         </div>
@@ -527,8 +548,8 @@
             </div>
 
             <div class="mb-3">
-              <label for="serieAluno" class="form-label">Série</label>
-              <input type="text" id="serieAluno" class="form-control" placeholder="Preenchida automaticamente se o aluno estiver cadastrado" />
+              <label for="serieAluno" class="form-label">Série (código)</label>
+              <input type="text" id="serieAluno" class="form-control" placeholder="Ex.: EINFA03MA" />
             </div>
 
             <div class="mb-3">
@@ -697,6 +718,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
 
+<!-- PDF.js para leitura de PDFs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
 <!-- Firebase + App (ES Module) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -714,6 +738,11 @@
     where,
     deleteDoc
   } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  import {
+    getStorage,
+    ref as storageRef,
+    uploadBytes
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
   // ==========================
   // CONFIGURAÇÃO DO SEU FIREBASE
@@ -730,6 +759,14 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const storage = getStorage(app);
+
+  // PDF.js global
+  const pdfjsLib = window["pdfjsLib"];
+  if (pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+  }
 
   // ==========================
   // Estado global
@@ -743,7 +780,6 @@
   let unsubscribeSetores = null;
   let unsubscribeAlunos = null;
   let atendimentoEmAlteracaoId = null;
-  let setoresSeeded = false;
   let listaSetores = [];
   let listaAlunos = [];
 
@@ -1007,11 +1043,17 @@
           `;
           tr.appendChild(tdPerms);
 
+          const tdSenha = document.createElement("td");
+          tdSenha.innerHTML = `<input type="password" class="form-control form-control-sm" id="novaSenha-${username}" placeholder="Nova senha" />`;
+          tr.appendChild(tdSenha);
+
           const tdAcoes = document.createElement("td");
-          tdAcoes.className = "text-center d-flex gap-1 justify-content-center";
+          tdAcoes.className = "text-center";
           tdAcoes.innerHTML = `
-            <button class="btn btn-sm btn-outline-primary" data-username="${username}" data-action="salvar">Salvar</button>
-            <button class="btn btn-sm btn-outline-danger" data-username="${username}" data-action="excluir">Excluir</button>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-primary" data-username="${username}" data-action="salvar">Salvar</button>
+              <button class="btn btn-outline-danger" data-username="${username}" data-action="excluir">Excluir</button>
+            </div>
           `;
           tr.appendChild(tdAcoes);
 
@@ -1032,24 +1074,21 @@
     const setoresRef = collection(db, "setores");
     unsubscribeSetores = onSnapshot(
       setoresRef,
-      (snapshot) => {
-        if (snapshot.empty && !setoresSeeded) {
-          setoresSeeded = true;
-          // Seed inicial de setores padrão
-          (async () => {
-            const defaultSetores = [
-              "Secretaria",
-              "Coordenação",
-              "Direção",
-              "Pedagógico",
-              "Financeiro",
-              "Orientação",
-              "Outro"
-            ];
-            for (const nome of defaultSetores) {
-              await addDoc(setoresRef, { nome, ativo: true });
-            }
-          })();
+      async (snapshot) => {
+        if (snapshot.empty) {
+          // Seed inicial de setores
+          const defaultSetores = [
+            "Secretaria",
+            "Coordenação",
+            "Direção",
+            "Pedagógico",
+            "Financeiro",
+            "Orientação",
+            "Outro"
+          ];
+          for (const nome of defaultSetores) {
+            await addDoc(setoresRef, { nome, ativo: true });
+          }
           return;
         }
 
@@ -1078,10 +1117,12 @@
           tr.appendChild(tdAtivo);
 
           const tdAcoes = document.createElement("td");
-          tdAcoes.className = "text-center d-flex justify-content-center gap-1";
+          tdAcoes.className = "text-center";
           tdAcoes.innerHTML = `
-            <button class="btn btn-sm btn-outline-primary" data-setor-id="${id}" data-action="salvar">Salvar</button>
-            <button class="btn btn-sm btn-outline-danger" data-setor-id="${id}" data-action="excluir">Excluir</button>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-primary" data-setor-id="${id}" data-action="salvar">Salvar</button>
+              <button class="btn btn-outline-danger" data-setor-id="${id}" data-action="excluir">Excluir</button>
+            </div>
           `;
           tr.appendChild(tdAcoes);
 
@@ -1569,7 +1610,20 @@
     leitor.readAsText(arquivo, "utf-8");
   }
 
-  async function importarAlunos(arquivo) {
+  // ==========================
+  // Importar alunos (PDF + JSON)
+  // ==========================
+  async function limparColecaoAlunos() {
+    const ref = collection(db, "alunos");
+    const snap = await getDocs(ref);
+    const batchDeletes = [];
+    for (const docSnap of snap.docs) {
+      batchDeletes.push(deleteDoc(docSnap.ref));
+    }
+    await Promise.all(batchDeletes);
+  }
+
+  async function importarAlunosJSON(arquivo) {
     const leitor = new FileReader();
     leitor.onload = async function (e) {
       try {
@@ -1578,21 +1632,114 @@
           alert("Arquivo inválido. Deve ser um array de alunos.");
           return;
         }
+        await limparColecaoAlunos();
         const ref = collection(db, "alunos");
         for (const al of dados) {
-          if (!al.nome) continue;
+          if (!al.nome || !al.serie) continue;
           await addDoc(ref, {
             nome: al.nome,
-            serie: al.serie || ""
+            serie: al.serie // código cru, opção A
           });
         }
-        alert("Alunos importados com sucesso.");
+        alert("Alunos importados com sucesso (JSON).");
       } catch (err) {
         console.error(err);
         alert("Erro ao importar alunos. Verifique se o JSON está no formato correto.");
       }
     };
     leitor.readAsText(arquivo, "utf-8");
+  }
+
+  async function importarAlunosPDF(arquivo) {
+    if (!pdfjsLib) {
+      alert("Biblioteca PDF.js não carregada.");
+      return;
+    }
+
+    try {
+      // Salvar PDF no Storage (substitui anterior)
+      const pdfStorageRef = storageRef(storage, "ensalamento/atual.pdf");
+      await uploadBytes(pdfStorageRef, arquivo);
+
+      const leitor = new FileReader();
+      leitor.onload = async function (e) {
+        try {
+          const arrayBuffer = e.target.result;
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const todosAlunos = [];
+
+          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((i) => i.str).join(" ");
+
+            // Série: último código em parênteses com letras/números antes de "Ano Letivo"
+            const serieMatch = pageText.match(/\(([A-Z0-9]{6,})\)[^()]*Ano Letivo/);
+            if (!serieMatch) continue;
+            const serieCodigo = serieMatch[1]; // Ex.: EINFA03MA
+
+            // Regex para Nome + RA (6 dígitos) + nº + data
+            const re = /([A-ZÁ-Úa-zá-úçÇ'´` ]+?)\s+(\d{6})\s+\d+\s+\d{2}\/\d{2}\/\d{4}/g;
+            let m;
+            while ((m = re.exec(pageText)) !== null) {
+              let nome = m[1].trim();
+              const ra = m[2];
+
+              // Filtrar cabeçalhos e textos não-aluno
+              if (
+                /RA Nº|Nome Status|Tipo de Ingresso|Total Aluno Novo|Total Rematrícula/i.test(
+                  nome
+                )
+              ) {
+                continue;
+              }
+
+              // Nome só com letras/acentos/espaço, evitando sujeira
+              if (!/[A-Za-zÁ-Úá-úçÇ]/.test(nome)) continue;
+
+              todosAlunos.push({
+                nome,
+                serie: serieCodigo // armazenando código puro (opção A)
+              });
+            }
+          }
+
+          if (todosAlunos.length === 0) {
+            alert("Nenhum aluno foi identificado no PDF. Verifique o layout do arquivo.");
+            return;
+          }
+
+          // Limpa coleção 'alunos' e grava novamente
+          await limparColecaoAlunos();
+          const refAlunos = collection(db, "alunos");
+          for (const al of todosAlunos) {
+            await addDoc(refAlunos, al);
+          }
+
+          alert(
+            `Importação concluída. ${todosAlunos.length} alunos cadastrados com base no PDF.`
+          );
+        } catch (err) {
+          console.error(err);
+          alert("Erro ao processar o PDF. Verifique se o arquivo é um ensalamento válido.");
+        }
+      };
+      leitor.readAsArrayBuffer(arquivo);
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao enviar o PDF para o Storage.");
+    }
+  }
+
+  async function importarAlunos(arquivo) {
+    const nome = arquivo.name.toLowerCase();
+    if (nome.endsWith(".pdf")) {
+      await importarAlunosPDF(arquivo);
+    } else if (nome.endsWith(".json")) {
+      await importarAlunosJSON(arquivo);
+    } else {
+      alert("Formato não suportado. Use arquivos .pdf ou .json.");
+    }
   }
 
   // ==========================
@@ -1717,6 +1864,30 @@
       .addEventListener("change", () => {
         renderizarAtendimentos();
         renderizarResumoSetores();
+      });
+
+    // Mostrar/ocultar detalhes de gestão
+    document
+      .getElementById("btnToggleGestaoDetalhes")
+      .addEventListener("click", () => {
+        const el = document.getElementById("gestaoDetalhes");
+        el.style.display = el.style.display === "none" ? "block" : "none";
+      });
+
+    // Mostrar/ocultar tabela de usuários
+    document
+      .getElementById("btnToggleTabelaUsuarios")
+      .addEventListener("click", () => {
+        const el = document.getElementById("usuariosTabelaWrapper");
+        el.style.display = el.style.display === "none" ? "block" : "none";
+      });
+
+    // Mostrar/ocultar tabela de setores
+    document
+      .getElementById("btnToggleTabelaSetores")
+      .addEventListener("click", () => {
+        const el = document.getElementById("setoresTabelaWrapper");
+        el.style.display = el.style.display === "none" ? "block" : "none";
       });
 
     // MODAL novo atendimento
@@ -1922,9 +2093,12 @@
           const permUsuarios = document.getElementById(
             `permUsuarios-${username}`
           ).checked;
+          const novaSenha = document.getElementById(
+            `novaSenha-${username}`
+          ).value;
 
           const ref = doc(db, "usuarios", username);
-          await updateDoc(ref, {
+          const updateData = {
             nome,
             perfil,
             ativo,
@@ -1934,7 +2108,11 @@
               podeGerarRelatorio: permRel,
               podeGerenciarUsuarios: permUsuarios
             }
-          });
+          };
+          if (novaSenha) {
+            updateData.senha = novaSenha;
+          }
+          await updateDoc(ref, updateData);
 
           if (usuarioLogado.username === username) {
             usuarioLogado.perfil = perfil;
@@ -1944,10 +2122,14 @@
               podeGerarRelatorio: permRel,
               podeGerenciarUsuarios: permUsuarios
             };
+            if (novaSenha) {
+              // Se alterou a própria senha, nada mais a fazer aqui
+            }
             atualizarHeaderUsuario();
             aplicarPermissoesUI();
           }
 
+          document.getElementById(`novaSenha-${username}`).value = "";
           alert("Usuário atualizado com sucesso.");
         } else if (action === "excluir") {
           if (username === usuarioLogado.username) {
@@ -2082,7 +2264,7 @@
         document.getElementById("novoSetorNome").value = "";
       });
 
-    // Importar alunos
+    // Importar alunos (PDF ou JSON)
     document
       .getElementById("btnImportarAlunos")
       .addEventListener("click", () => {
