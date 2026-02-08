@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Controle de Atendimentos - Secretaria</Title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #f5f7fa, #e4ecf7);
+      min-height: 100vh;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, #0d6efd, #6610f2);
+      border-radius: 16px;
+      padding: 20px 24px;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+    }
+
+    .page-header h1 {
+      font-size: 1.7rem;
+      margin-bottom: 4px;
+    }
+
+    .page-header p {
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+    }
+
+    .card-header {
+      border-radius: 16px 16px 0 0 !important;
+    }
+
+    .table > :not(caption) > * > * {
+      vertical-align: middle;
+    }
+
+    .table thead th {
+      background-color: #f1f5f9;
+      border-bottom-width: 1px;
+    }
+
+    /* Status em "pílula" colorida */
+    .status-pendente {
+      font-weight: 600;
+      color: #856404;
+      background-color: #fff3cd;
+      padding: 2px 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .status-resolvido {
+      font-weight: 600;
+      color: #0f5132;
+      background-color: #d1e7dd;
+      padding: 2px 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .badge-setor {
+      font-size: 0.8rem;
+    }
+
+    .table-responsive {
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    /* Botões flutuantes (FABs) */
+    .fab {
+      position: fixed;
+      right: 20px;
+      z-index: 1050;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.3);
+      border: none;
+      cursor: pointer;
+    }
+
+    .fab span {
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+
+    #fabNovo {
+      bottom: 90px;
+      background: linear-gradient(135deg, #198754, #20c997);
+      color: #fff;
+      display: none; /* visível conforme permissões */
+    }
+
+    #fabRelatorio {
+      bottom: 20px;
+      background: linear-gradient(135deg, #dc3545, #fd7e14);
+      color: #fff;
+      display: none; /* visível conforme permissões */
+    }
+
+    /* Login centralizado */
+    #loginContainer {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Responsividade: reduzir tamanhos no celular */
+    @media (max-width: 576px) {
+      body {
+        font-size: 0.9rem;
+      }
+      .page-header h1 {
+        font-size: 1.35rem;
+      }
+      .page-header p {
+        font-size: 0.85rem;
+      }
+      .table {
+        font-size: 0.78rem;
+      }
+      .badge-setor {
+        font-size: 0.7rem;
+      }
+      .status-pendente,
+      .status-resolvido {
+        font-size: 0.75rem;
+        padding: 1px 8px;
+      }
+      .card-body {
+        padding: 0.9rem;
+      }
+      .fab {
+        width: 52px;
+        height: 52px;
+        right: 16px;
+      }
+      #fabNovo {
+        bottom: 82px;
+      }
+      #fabRelatorio {
+        bottom: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== LOGIN ==================== -->
+<div id="loginContainer">
+  <div class="card" style="max-width: 420px; width: 100%; border-radius: 18px;">
+    <div class="card-body p-4">
+      <h4 class="mb-1 text-center">Acesso ao Sistema</h4>
+      <p class="text-muted text-center mb-4">
+        Informe seu usuário e senha para registrar e acompanhar os atendimentos.
+      </p>
+      <form id="formLogin">
+        <div class="mb-3">
+          <label for="loginUsuario" class="form-label">Usuário</label>
+          <input type="text" id="loginUsuario" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="loginSenha" class="form-label">Senha</label>
+          <input type="password" id="loginSenha" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <small class="text-muted">
+            Primeiro acesso: use<br />
+            <strong>Usuário:</strong> <code>master</code><br />
+            <strong>Senha:</strong> <code>123</code><br />
+            (o sistema cria o usuário Master automaticamente na base)
+          </small>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">
+          Entrar
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== APLICAÇÃO ==================== -->
+<div id="appContainer" style="display: none;">
+  <div class="container py-4">
+    <!-- Cabeçalho -->
+    <div class="page-header mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+      <div>
+        <h1>Controle de Atendimentos - Secretaria</h1>
+        <p>Registro de atendimentos de responsáveis, acompanhamento por setor e relatórios diários.</p>
+      </div>
+      <div class="mt-3 mt-md-0 text-md-end">
+        <div><strong>Usuário:</strong> <span id="infoUsuarioNome"></span></div>
+        <div class="small"><strong>Perfil:</strong> <span id="infoUsuarioPerfil"></span></div>
+        <button id="btnLogout" class="btn btn-sm btn-outline-light mt-2">
+          Sair
+        </button>
+      </div>
+    </div>
+
+    <!-- Gestão de usuários (apenas master/admin) -->
+    <div id="gestaoUsuariosCard" class="card mb-4" style="display: none;">
+      <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+        <strong>Gestão de usuários</strong>
+        <small class="text-muted">Apenas usuários com permissão de administração</small>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <!-- Form novo usuário -->
+          <div class="col-md-4">
+            <h6 class="mb-2">Novo usuário</h6>
+            <form id="formNovoUsuario">
+              <div class="mb-2">
+                <label for="novoUsername" class="form-label">Usuário (sem espaços)</label>
+                <input type="text" id="novoUsername" class="form-control form-control-sm" required />
+              </div>
+              <div class="mb-2">
+                <label for="novoSenha" class="form-label">Senha</label>
+                <input type="password" id="novoSenha" class="form-control form-control-sm" required />
+              </div>
+              <div class="mb-2">
+                <label for="novoNome" class="form-label">Nome completo</label>
+                <input type="text" id="novoNome" class="form-control form-control-sm" required />
+              </div>
+              <div class="mb-2">
+                <label for="novoPerfil" class="form-label">Perfil</label>
+                <select id="novoPerfil" class="form-select form-select-sm" required>
+                  <option value="Secretaria">Secretaria</option>
+                  <option value="Coordenação">Coordenação</option>
+                  <option value="Direção">Direção</option>
+                  <option value="Administrador">Administrador</option>
+                  <option value="Master">Master</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Permissões</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="novoPermRegistrar" checked />
+                  <label class="form-check-label" for="novoPermRegistrar">
+                    Registrar atendimentos
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="novoPermStatus" checked />
+                  <label class="form-check-label" for="novoPermStatus">
+                    Alterar status (pendente/resolvido)
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="novoPermRelatorio" checked />
+                  <label class="form-check-label" for="novoPermRelatorio">
+                    Gerar relatórios PDF / exportar
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="novoPermGerUsuarios" />
+                  <label class="form-check-label" for="novoPermGerUsuarios">
+                    Gerenciar usuários
+                  </label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-sm btn-success mt-2">
+                Criar usuário
+              </button>
+            </form>
+          </div>
+
+          <!-- Lista de usuários -->
+          <div class="col-md-8">
+            <h6 class="mb-2">Usuários cadastrados</h6>
+            <div class="table-responsive" style="max-height: 260px;">
+              <table class="table table-sm align-middle">
+                <thead>
+                <tr>
+                  <th>Usuário</th>
+                  <th>Nome</th>
+                  <th>Perfil</th>
+                  <th>Ativo</th>
+                  <th>Permissões</th>
+                  <th class="text-center">Ações</th>
+                </tr>
+                </thead>
+                <tbody id="tbodyUsuarios">
+                <!-- via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtro de data e ações gerais -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <label for="dataFiltro" class="form-label fw-semibold text-secondary">
+          Data do relatório / filtro
+        </label>
+        <input type="date" id="dataFiltro" class="form-control" />
+        <div class="form-text">
+          Por padrão, usa a data de hoje. Altere para ver outros dias.
+        </div>
+      </div>
+      <div class="col-md-8 d-flex align-items-end gap-2 flex-wrap justify-content-md-end">
+        <button id="btnExportar" class="btn btn-outline-primary">
+          Exportar dados do dia (.json)
+        </button>
+        <button id="btnImportar" class="btn btn-outline-secondary">
+          Importar dados (.json)
+        </button>
+        <input type="file" id="inputImportar" accept=".json" class="d-none" />
+        <small class="text-muted w-100 text-md-end">
+          Dados são salvos em tempo real no Firebase (nuvem).
+        </small>
+      </div>
+    </div>
+
+    <!-- Lista de atendimentos + resumo -->
+    <div class="row g-4">
+      <div class="col-12">
+        <!-- Lista de atendimentos -->
+        <div class="card mb-3">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center border-bottom">
+            <div>
+              <strong>Atendimentos do dia filtrado</strong>
+            </div>
+            <small id="contadorAtendimentos" class="text-muted"></small>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle">
+                <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Aluno</th>
+                  <th>Motivo</th>
+                  <th>Setor</th>
+                  <th>Plataforma</th>
+                  <th>Retorno</th>
+                  <th>Lançado por</th>
+                  <th>Status</th>
+                  <th class="text-center">Ações</th>
+                </tr>
+                </thead>
+                <tbody id="tbodyAtendimentos">
+                <!-- Linhas via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumo por setor -->
+        <div class="card">
+          <div class="card-header bg-white border-bottom">
+            <strong>Resumo por setor (demandas do dia selecionado)</strong>
+          </div>
+          <div class="card-body">
+            <div id="resumoSetoresVazio" class="text-muted">
+              Nenhum atendimento registrado para esta data.
+            </div>
+            <div id="resumoSetores" class="row g-3">
+              <!-- Cards de resumo via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botão flutuante: Novo atendimento -->
+  <button
+    id="fabNovo"
+    class="fab"
+    type="button"
+    title="Novo atendimento"
+  >
+    <span>+</span>
+  </button>
+
+  <!-- Botão flutuante: Relatório PDF -->
+  <button
+    id="fabRelatorio"
+    class="fab"
+    type="button"
+    title="Gerar relatório em PDF do dia"
+  >
+    <span>📄</span>
+  </button>
+
+  <!-- Modal Novo Atendimento -->
+  <div class="modal fade" id="modalNovoAtendimento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Novo atendimento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formAtendimento">
+            <div class="mb-3">
+              <label for="nomeAluno" class="form-label">Nome do aluno</label>
+              <input type="text" id="nomeAluno" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+              <label for="motivo" class="form-label">Motivo do contato</label>
+              <textarea id="motivo" class="form-control" rows="2" required></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="setor" class="form-label">Setor responsável</label>
+              <select id="setor" class="form-select" required>
+                <option value="">Selecione...</option>
+                <option value="Secretaria">Secretaria</option>
+                <option value="Coordenação">Coordenação</option>
+                <option value="Direção">Direção</option>
+                <option value="Pedagógico">Pedagógico</option>
+                <option value="Financeiro">Financeiro</option>
+                <option value="Orientação">Orientação</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="plataforma" class="form-label">Plataforma de comunicação com o setor</label>
+              <select id="plataforma" class="form-select" required>
+                <option value="">Selecione...</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="E-mail">E-mail</option>
+                <option value="SMS">SMS</option>
+                <option value="uTalk">uTalk</option>
+                <option value="Telefone">Telefone</option>
+                <option value="Presencial">Presencial</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="retorno" class="form-label">Retorno do setor</label>
+              <select id="retorno" class="form-select" required>
+                <option value="Sem retorno">Sem retorno</option>
+                <option value="Retorno recebido">Retorno recebido</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="status" class="form-label">Situação</label>
+              <select id="status" class="form-select" required>
+                <option value="Pendente">Pendente</option>
+                <option value="Resolvido">Resolvido</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="observacoes" class="form-label">Observações (opcional)</label>
+              <textarea id="observacoes" class="form-control" rows="2"></textarea>
+            </div>
+
+            <!-- Data do atendimento segue o filtro -->
+            <input type="hidden" id="dataAtendimento" />
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="btnSalvarAtendimento" class="btn btn-success">Salvar atendimento</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Observação ao marcar resolvido -->
+  <div class="modal fade" id="modalObservacao" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Marcar atendimento como resolvido</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-2">
+            Você está marcando este atendimento como <strong>Resolvido</strong>.
+          </p>
+          <label for="obsResolvido" class="form-label">Observação (opcional)</label>
+          <textarea
+            id="obsResolvido"
+            class="form-control"
+            rows="3"
+            placeholder="Ex.: Setor retornou por WhatsApp às 15h, combinado de enviar documento até amanhã."
+          ></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="btnSalvarObs" class="btn btn-success">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- jsPDF + AutoTable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+
+<!-- Firebase + App (ES Module) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    doc,
+    setDoc,
+    getDoc,
+    addDoc,
+    updateDoc,
+    onSnapshot
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  // ==========================
+  // CONFIGURAR FIREBASE AQUI
+  // ==========================
+  // No console do Firebase:
+  // - Crie um projeto
+  // - Ative o Firestore (modo de teste inicialmente)
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCcOEXLRlUAE1LDqCGY4gXDzR-VrEwWxZY",
+  authDomain: "atendimento-escolar.firebaseapp.com",
+  projectId: "atendimento-escolar",
+  storageBucket: "atendimento-escolar.firebasestorage.app",
+  messagingSenderId: "528964804496",
+  appId: "1:528964804496:web:4b0159e33fdf0a03ba5d15",
+  measurementId: "G-N9TP4Z1Q3M"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+  // ==========================
+  // Estado global
+  // ==========================
+  const STORAGE_KEY_USUARIO = "atendimentos_usuario_logado";
+  let usuarioLogado = null;
+  let atendimentosDoDia = [];
+  let unsubscribeAtendimentos = null;
+  let unsubscribeUsuarios = null;
+  let atendimentoEmAlteracaoId = null;
+
+  // =====================
+  // Utilitários de data
+  // =====================
+  function getHojeISO() {
+    return new Date().toISOString().slice(0, 10); // yyyy-mm-dd
+  }
+
+  function formatarDataBR(iso) {
+    if (!iso) return "";
+    const [ano, mes, dia] = iso.split("-");
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  function getDataHoraBR() {
+    const d = new Date();
+    const dia = String(d.getDate()).padStart(2, "0");
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const ano = d.getFullYear();
+    const hora = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    return `${dia}/${mes}/${ano} ${hora}:${min}`;
+  }
+
+  // ==========================
+  // Login / Usuário
+  // ==========================
+  async function carregarUsuarioLogadoLocal() {
+    const username = localStorage.getItem(STORAGE_KEY_USUARIO);
+    if (!username) return null;
+    try {
+      const ref = doc(db, "usuarios", username);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        localStorage.removeItem(STORAGE_KEY_USUARIO);
+        return null;
+      }
+      const data = snap.data();
+      if (data.ativo === false) {
+        localStorage.removeItem(STORAGE_KEY_USUARIO);
+        return null;
+      }
+      usuarioLogado = {
+        username,
+        nome: data.nome,
+        perfil: data.perfil,
+        permissoes: data.permissoes || {}
+      };
+      return usuarioLogado;
+    } catch (e) {
+      console.error("Erro ao carregar usuário logado:", e);
+      return null;
+    }
+  }
+
+  function salvarUsuarioLogadoLocal() {
+    if (usuarioLogado && usuarioLogado.username) {
+      localStorage.setItem(STORAGE_KEY_USUARIO, usuarioLogado.username);
+    } else {
+      localStorage.removeItem(STORAGE_KEY_USUARIO);
+    }
+  }
+
+  async function fazerLogin(username, senha) {
+    const ref = doc(db, "usuarios", username);
+    let snap = await getDoc(ref);
+
+    // Se não existir e for master/123, cria automático
+    if (!snap.exists() && username === "master" && senha === "123") {
+      const novoMaster = {
+        nome: "Master",
+        perfil: "Master",
+        senha: "123",
+        ativo: true,
+        permissoes: {
+          podeRegistrarAtendimento: true,
+          podeAlterarStatus: true,
+          podeGerarRelatorio: true,
+          podeGerenciarUsuarios: true
+        }
+      };
+      await setDoc(ref, novoMaster);
+      snap = await getDoc(ref);
+    }
+
+    if (!snap.exists()) {
+      return false;
+    }
+
+    const data = snap.data();
+    if (data.senha !== senha) {
+      return false;
+    }
+    if (data.ativo === false) {
+      alert("Usuário inativo. Procure o administrador.");
+      return false;
+    }
+
+    usuarioLogado = {
+      username,
+      nome: data.nome,
+      perfil: data.perfil,
+      permissoes:
+        data.permissoes || {
+          podeRegistrarAtendimento: true,
+          podeAlterarStatus: true,
+          podeGerarRelatorio: true,
+          podeGerenciarUsuarios: data.perfil === "Master"
+        }
+    };
+    salvarUsuarioLogadoLocal();
+    return true;
+  }
+
+  function atualizarHeaderUsuario() {
+    if (!usuarioLogado) return;
+    document.getElementById("infoUsuarioNome").innerText = usuarioLogado.nome;
+    document.getElementById("infoUsuarioPerfil").innerText =
+      usuarioLogado.perfil;
+  }
+
+  function aplicarPermissoesUI() {
+    const fabNovo = document.getElementById("fabNovo");
+    const fabRelatorio = document.getElementById("fabRelatorio");
+    const gestaoCard = document.getElementById("gestaoUsuariosCard");
+
+    if (!usuarioLogado) {
+      fabNovo.style.display = "none";
+      fabRelatorio.style.display = "none";
+      gestaoCard.style.display = "none";
+      return;
+    }
+
+    const perms = usuarioLogado.permissoes || {};
+    fabNovo.style.display = perms.podeRegistrarAtendimento ? "flex" : "none";
+    fabRelatorio.style.display = perms.podeGerarRelatorio ? "flex" : "none";
+    gestaoCard.style.display = perms.podeGerenciarUsuarios ? "block" : "none";
+  }
+
+  function exibirApp() {
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("appContainer").style.display = "block";
+    atualizarHeaderUsuario();
+    aplicarPermissoesUI();
+  }
+
+  function exibirLogin() {
+    document.getElementById("loginContainer").style.display = "flex";
+    document.getElementById("appContainer").style.display = "none";
+  }
+
+  // ==========================
+  // Listeners Firestore
+  // ==========================
+  function iniciarListenerAtendimentos(dataFiltro) {
+    if (unsubscribeAtendimentos) {
+      unsubscribeAtendimentos();
+      unsubscribeAtendimentos = null;
+    }
+    const ref = collection(db, "atendimentos");
+    // Filtro por dataAtendimento == dataFiltro
+    // (data em string yyyy-mm-dd)
+    unsubscribeAtendimentos = onSnapshot(
+      ref,
+      (snapshot) => {
+        atendimentosDoDia = [];
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.dataAtendimento === dataFiltro) {
+            atendimentosDoDia.push({ id: docSnap.id, ...data });
+          }
+        });
+        renderizarAtendimentos();
+        renderizarResumoSetores();
+      },
+      (error) => {
+        console.error("Erro no listener de atendimentos:", error);
+      }
+    );
+  }
+
+  function iniciarListenerUsuarios() {
+    if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) return;
+
+    if (unsubscribeUsuarios) {
+      unsubscribeUsuarios();
+      unsubscribeUsuarios = null;
+    }
+
+    const usuariosRef = collection(db, "usuarios");
+    unsubscribeUsuarios = onSnapshot(
+      usuariosRef,
+      (snapshot) => {
+        const tbody = document.getElementById("tbodyUsuarios");
+        tbody.innerHTML = "";
+        snapshot.forEach((docSnap) => {
+          const username = docSnap.id;
+          const u = docSnap.data();
+
+          const tr = document.createElement("tr");
+          tr.dataset.username = username;
+
+          const tdUser = document.createElement("td");
+          tdUser.textContent = username;
+          tr.appendChild(tdUser);
+
+          const tdNome = document.createElement("td");
+          tdNome.innerHTML = `<input type="text" class="form-control form-control-sm" id="nome-${username}" value="${
+            u.nome || ""
+          }">`;
+          tr.appendChild(tdNome);
+
+          const tdPerfil = document.createElement("td");
+          const perfis = [
+            "Secretaria",
+            "Coordenação",
+            "Direção",
+            "Administrador",
+            "Master",
+            "Outro"
+          ];
+          let optionsHtml = "";
+          perfis.forEach((p) => {
+            const sel = u.perfil === p ? "selected" : "";
+            optionsHtml += `<option value="${p}" ${sel}>${p}</option>`;
+          });
+          tdPerfil.innerHTML = `<select class="form-select form-select-sm" id="perfil-${username}">${optionsHtml}</select>`;
+          tr.appendChild(tdPerfil);
+
+          const tdAtivo = document.createElement("td");
+          tdAtivo.className = "text-center";
+          const ativoChecked = u.ativo === false ? "" : "checked";
+          tdAtivo.innerHTML = `<input type="checkbox" class="form-check-input" id="ativo-${username}" ${ativoChecked}>`;
+          tr.appendChild(tdAtivo);
+
+          const tdPerms = document.createElement("td");
+          const perms = u.permissoes || {};
+          tdPerms.innerHTML = `
+            <div class="d-flex flex-column gap-1 small">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="permReg-${username}" ${
+            perms.podeRegistrarAtendimento ? "checked" : ""
+          }>
+                <label class="form-check-label" for="permReg-${username}">Registrar</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="permStatus-${username}" ${
+            perms.podeAlterarStatus ? "checked" : ""
+          }>
+                <label class="form-check-label" for="permStatus-${username}">Status</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="permRel-${username}" ${
+            perms.podeGerarRelatorio ? "checked" : ""
+          }>
+                <label class="form-check-label" for="permRel-${username}">Relatório</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="permUsuarios-${username}" ${
+            perms.podeGerenciarUsuarios ? "checked" : ""
+          }>
+                <label class="form-check-label" for="permUsuarios-${username}">Usuários</label>
+              </div>
+            </div>
+          `;
+          tr.appendChild(tdPerms);
+
+          const tdAcoes = document.createElement("td");
+          tdAcoes.className = "text-center";
+          tdAcoes.innerHTML = `<button class="btn btn-sm btn-outline-primary" data-username="${username}">Salvar</button>`;
+          tr.appendChild(tdAcoes);
+
+          tbody.appendChild(tr);
+        });
+      },
+      (error) => {
+        console.error("Erro no listener de usuários:", error);
+      }
+    );
+  }
+
+  // ==========================
+  // Renderização Atendimentos
+  // ==========================
+  function renderizarAtendimentos() {
+    const tbody = document.getElementById("tbodyAtendimentos");
+    tbody.innerHTML = "";
+
+    const dataFiltro = document.getElementById("dataFiltro").value;
+    document.getElementById("contadorAtendimentos").innerText =
+      atendimentosDoDia.length > 0
+        ? `${atendimentosDoDia.length} atendimento(s) para ${formatarDataBR(
+            dataFiltro
+          )}`
+        : `Nenhum atendimento para ${formatarDataBR(dataFiltro)}`;
+
+    const podeAlterar =
+      usuarioLogado?.permissoes?.podeAlterarStatus === true;
+
+    atendimentosDoDia.forEach((a) => {
+      const tr = document.createElement("tr");
+
+      const tdData = document.createElement("td");
+      tdData.textContent = formatarDataBR(a.dataAtendimento);
+      tr.appendChild(tdData);
+
+      const tdAluno = document.createElement("td");
+      tdAluno.textContent = a.nomeAluno;
+      tr.appendChild(tdAluno);
+
+      const tdMotivo = document.createElement("td");
+      tdMotivo.textContent = a.motivo;
+      tr.appendChild(tdMotivo);
+
+      const tdSetor = document.createElement("td");
+      tdSetor.innerHTML = `<span class="badge bg-info text-dark badge-setor">${a.setor}</span>`;
+      tr.appendChild(tdSetor);
+
+      const tdPlataforma = document.createElement("td");
+      tdPlataforma.textContent = a.plataforma;
+      tr.appendChild(tdPlataforma);
+
+      const tdRetorno = document.createElement("td");
+      tdRetorno.textContent = a.retorno;
+      tr.appendChild(tdRetorno);
+
+      const tdUsuario = document.createElement("td");
+      tdUsuario.textContent = a.usuarioNome || "-";
+      tr.appendChild(tdUsuario);
+
+      const tdStatus = document.createElement("td");
+      const spanStatus = document.createElement("span");
+      spanStatus.textContent = a.status;
+      spanStatus.classList.add(
+        a.status === "Resolvido" ? "status-resolvido" : "status-pendente"
+      );
+      tdStatus.appendChild(spanStatus);
+      tr.appendChild(tdStatus);
+
+      const tdAcoes = document.createElement("td");
+      tdAcoes.className = "text-center";
+      const btnToggle = document.createElement("button");
+      btnToggle.className =
+        "btn btn-sm " +
+        (a.status === "Resolvido"
+          ? "btn-outline-secondary"
+          : "btn-outline-success");
+      btnToggle.textContent =
+        a.status === "Resolvido" ? "Marcar pendente" : "Marcar resolvido";
+
+      if (!podeAlterar) {
+        btnToggle.disabled = true;
+        btnToggle.classList.add("disabled");
+      }
+
+      btnToggle.onclick = async () => {
+        if (!podeAlterar) return;
+
+        const ref = doc(db, "atendimentos", a.id);
+        if (a.status === "Resolvido") {
+          // Volta para pendente direto
+          await updateDoc(ref, { status: "Pendente" });
+        } else {
+          // Abre modal para observação
+          atendimentoEmAlteracaoId = a.id;
+          document.getElementById("obsResolvido").value = "";
+          const modalObs = new bootstrap.Modal(
+            document.getElementById("modalObservacao")
+          );
+          modalObs.show();
+        }
+      };
+
+      tdAcoes.appendChild(btnToggle);
+      tr.appendChild(tdAcoes);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ==========================
+  // Resumo por setor
+  // ==========================
+  function renderizarResumoSetores() {
+    const container = document.getElementById("resumoSetores");
+    const msgVazio = document.getElementById("resumoSetoresVazio");
+
+    container.innerHTML = "";
+
+    if (atendimentosDoDia.length === 0) {
+      msgVazio.style.display = "block";
+      return;
+    }
+
+    msgVazio.style.display = "none";
+
+    const contagem = {};
+    atendimentosDoDia.forEach((a) => {
+      if (!contagem[a.setor]) contagem[a.setor] = 0;
+      contagem[a.setor]++;
+    });
+
+    Object.keys(contagem).forEach((setor) => {
+      const col = document.createElement("div");
+      col.className = "col-md-4 col-sm-6";
+
+      const card = document.createElement("div");
+      card.className = "border rounded p-3 h-100 bg-light";
+
+      const titulo = document.createElement("div");
+      titulo.className = "fw-semibold mb-1";
+      titulo.textContent = setor;
+
+      const qtd = document.createElement("div");
+      qtd.innerHTML = `<span class="h3 mb-0">${contagem[setor]}</span> demanda(s)`;
+
+      card.appendChild(titulo);
+      card.appendChild(qtd);
+      col.appendChild(card);
+      container.appendChild(col);
+    });
+  }
+
+  // ==========================
+  // Geração de PDF
+  // ==========================
+  async function gerarPDFDoDia() {
+    if (!window.jspdf) {
+      alert("Biblioteca jsPDF não carregada.");
+      return;
+    }
+
+    const dataFiltro = document.getElementById("dataFiltro").value;
+    if (atendimentosDoDia.length === 0) {
+      alert("Não há atendimentos para esta data.");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const docPdf = new jsPDF("p", "pt", "a4");
+
+    const dataBR = formatarDataBR(dataFiltro);
+
+    docPdf.setFontSize(16);
+    docPdf.text("Relatório de Atendimentos - Secretaria", 40, 40);
+    docPdf.setFontSize(12);
+    docPdf.text(`Data dos atendimentos: ${dataBR}`, 40, 60);
+    docPdf.text(`Relatório gerado em: ${getDataHoraBR()}`, 40, 75);
+    if (usuarioLogado) {
+      docPdf.text(
+        `Gerado por: ${usuarioLogado.nome} (${usuarioLogado.perfil})`,
+        40,
+        90
+      );
+    }
+
+    const body = atendimentosDoDia.map((a) => [
+      formatarDataBR(a.dataAtendimento),
+      a.nomeAluno,
+      a.motivo,
+      a.setor,
+      a.plataforma,
+      a.retorno,
+      a.usuarioNome || "",
+      a.status,
+      a.observacoes || ""
+    ]);
+
+    docPdf.autoTable({
+      startY: 110,
+      head: [
+        [
+          "Data",
+          "Aluno",
+          "Motivo",
+          "Setor",
+          "Plataforma",
+          "Retorno",
+          "Usuário",
+          "Status",
+          "Obs."
+        ]
+      ],
+      body: body,
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: [41, 128, 185] }
+    });
+
+    const contagem = {};
+    atendimentosDoDia.forEach((a) => {
+      if (!contagem[a.setor]) contagem[a.setor] = 0;
+      contagem[a.setor]++;
+    });
+
+    let finalY = docPdf.lastAutoTable.finalY || 110;
+    finalY += 30;
+
+    docPdf.setFontSize(13);
+    docPdf.text("Resumo de demandas por setor", 40, finalY);
+    finalY += 10;
+
+    const resumoBody = Object.keys(contagem).map((setor) => [
+      setor,
+      contagem[setor]
+    ]);
+
+    docPdf.autoTable({
+      startY: finalY,
+      head: [["Setor", "Quantidade de atendimentos"]],
+      body: resumoBody,
+      styles: { fontSize: 10, cellPadding: 4 },
+      headStyles: { fillColor: [39, 174, 96] }
+    });
+
+    const nomeArquivo = `relatorio_atendimentos_${dataFiltro}.pdf`;
+    docPdf.save(nomeArquivo);
+  }
+
+  // ==========================
+  // Exportar / Importar JSON
+  // ==========================
+  function exportarDadosDoDia() {
+    if (atendimentosDoDia.length === 0) {
+      alert("Não há dados para exportar nesta data.");
+      return;
+    }
+    const dataFiltro = document.getElementById("dataFiltro").value;
+    const blob = new Blob([JSON.stringify(atendimentosDoDia, null, 2)], {
+      type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `atendimentos_${dataFiltro}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function importarDados(arquivo) {
+    const leitor = new FileReader();
+    leitor.onload = async function (e) {
+      try {
+        const dados = JSON.parse(e.target.result);
+        if (!Array.isArray(dados)) {
+          alert("Arquivo inválido. Deve ser um array de atendimentos.");
+          return;
+        }
+        const ref = collection(db, "atendimentos");
+        for (const reg of dados) {
+          const { id, ...resto } = reg; // tira id antigo
+          await addDoc(ref, resto);
+        }
+        alert("Dados importados com sucesso para o Firebase.");
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao ler o arquivo. Verifique se é um JSON válido.");
+      }
+    };
+    leitor.readAsText(arquivo, "utf-8");
+  }
+
+  // ==========================
+  // Inicialização
+  // ==========================
+  document.addEventListener("DOMContentLoaded", async () => {
+    const campoDataFiltro = document.getElementById("dataFiltro");
+    const campoDataAtendimento = document.getElementById("dataAtendimento");
+    const hoje = getHojeISO();
+    campoDataFiltro.value = hoje;
+    campoDataAtendimento.value = hoje;
+
+    // Tentativa de restaurar usuário logado
+    await carregarUsuarioLogadoLocal();
+
+    if (usuarioLogado) {
+      exibirApp();
+      iniciarListenerAtendimentos(campoDataFiltro.value);
+      if (usuarioLogado.permissoes?.podeGerenciarUsuarios) {
+        iniciarListenerUsuarios();
+      }
+    } else {
+      exibirLogin();
+    }
+
+    // LOGIN
+    document
+      .getElementById("formLogin")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = document
+          .getElementById("loginUsuario")
+          .value.trim();
+        const senha = document.getElementById("loginSenha").value;
+        const ok = await fazerLogin(username, senha);
+        if (!ok) {
+          alert("Usuário ou senha inválidos.");
+          return;
+        }
+        document.getElementById("loginUsuario").value = "";
+        document.getElementById("loginSenha").value = "";
+        exibirApp();
+        iniciarListenerAtendimentos(campoDataFiltro.value);
+        if (usuarioLogado.permissoes?.podeGerenciarUsuarios) {
+          iniciarListenerUsuarios();
+        }
+      });
+
+    // LOGOUT
+    document.getElementById("btnLogout").addEventListener("click", () => {
+      usuarioLogado = null;
+      salvarUsuarioLogadoLocal();
+      if (unsubscribeAtendimentos) unsubscribeAtendimentos();
+      if (unsubscribeUsuarios) unsubscribeUsuarios();
+      atendimentosDoDia = [];
+      document.getElementById("tbodyAtendimentos").innerHTML = "";
+      document.getElementById("resumoSetores").innerHTML = "";
+      document.getElementById("resumoSetoresVazio").style.display = "block";
+      exibirLogin();
+    });
+
+    // Alteração da data de filtro
+    campoDataFiltro.addEventListener("change", () => {
+      campoDataAtendimento.value = campoDataFiltro.value || getHojeISO();
+      if (usuarioLogado) {
+        iniciarListenerAtendimentos(campoDataFiltro.value);
+      }
+    });
+
+    // MODAL novo atendimento
+    const modalNovoEl = document.getElementById("modalNovoAtendimento");
+    const modalNovo = new bootstrap.Modal(modalNovoEl);
+
+    // FAB Novo atendimento
+    document.getElementById("fabNovo").addEventListener("click", () => {
+      if (!usuarioLogado?.permissoes?.podeRegistrarAtendimento) {
+        alert("Você não tem permissão para registrar atendimentos.");
+        return;
+      }
+      campoDataAtendimento.value = campoDataFiltro.value || getHojeISO();
+      document.getElementById("formAtendimento").reset();
+      modalNovo.show();
+    });
+
+    // Salvar novo atendimento
+    document
+      .getElementById("btnSalvarAtendimento")
+      .addEventListener("click", async () => {
+        if (!usuarioLogado?.permissoes?.podeRegistrarAtendimento) {
+          alert("Você não tem permissão para registrar atendimentos.");
+          return;
+        }
+
+        const nomeAluno = document
+          .getElementById("nomeAluno")
+          .value.trim();
+        const motivo = document.getElementById("motivo").value.trim();
+        const setor = document.getElementById("setor").value;
+        const plataforma = document.getElementById("plataforma").value;
+        const retorno = document.getElementById("retorno").value;
+        const status = document.getElementById("status").value;
+        const observacoes = document
+          .getElementById("observacoes")
+          .value.trim();
+        const dataAtendimento =
+          campoDataAtendimento.value || getHojeISO();
+
+        if (
+          !nomeAluno ||
+          !motivo ||
+          !setor ||
+          !plataforma ||
+          !retorno ||
+          !status
+        ) {
+          alert("Preencha todos os campos obrigatórios.");
+          return;
+        }
+
+        const novo = {
+          dataAtendimento,
+          nomeAluno,
+          motivo,
+          setor,
+          plataforma,
+          retorno,
+          status,
+          observacoes,
+          usuarioUsername: usuarioLogado.username,
+          usuarioNome: usuarioLogado.nome
+        };
+
+        await addDoc(collection(db, "atendimentos"), novo);
+
+        document.getElementById("formAtendimento").reset();
+        modalNovo.hide();
+      });
+
+    // Salvar observação ao marcar resolvido
+    document
+      .getElementById("btnSalvarObs")
+      .addEventListener("click", async () => {
+        const obs = document.getElementById("obsResolvido").value.trim();
+        if (atendimentoEmAlteracaoId) {
+          const ref = doc(db, "atendimentos", atendimentoEmAlteracaoId);
+          // localizar registro atual para mesclar observações
+          const atual = atendimentosDoDia.find(
+            (x) => x.id === atendimentoEmAlteracaoId
+          );
+          let novasObs = atual?.observacoes || "";
+          if (obs) {
+            novasObs = novasObs ? `${novasObs} | ${obs}` : obs;
+          }
+          await updateDoc(ref, {
+            status: "Resolvido",
+            observacoes: novasObs
+          });
+        }
+        const modalObsEl = document.getElementById("modalObservacao");
+        const modalObsInstance = bootstrap.Modal.getInstance(modalObsEl);
+        modalObsInstance.hide();
+        atendimentoEmAlteracaoId = null;
+      });
+
+    // FAB Relatório
+    document
+      .getElementById("fabRelatorio")
+      .addEventListener("click", gerarPDFDoDia);
+
+    // Exportar / Importar
+    document
+      .getElementById("btnExportar")
+      .addEventListener("click", exportarDadosDoDia);
+
+    document.getElementById("btnImportar").addEventListener("click", () => {
+      document.getElementById("inputImportar").click();
+    });
+
+    document
+      .getElementById("inputImportar")
+      .addEventListener("change", (e) => {
+        const arquivo = e.target.files[0];
+        if (arquivo) {
+          importarDados(arquivo);
+          e.target.value = "";
+        }
+      });
+
+    // Gestão de usuários: criar novo
+    document
+      .getElementById("formNovoUsuario")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) {
+          alert("Você não tem permissão para gerenciar usuários.");
+          return;
+        }
+
+        const username = document
+          .getElementById("novoUsername")
+          .value.trim();
+        const senha = document.getElementById("novoSenha").value;
+        const nome = document.getElementById("novoNome").value.trim();
+        const perfil = document.getElementById("novoPerfil").value;
+        const permReg =
+          document.getElementById("novoPermRegistrar").checked;
+        const permStatus =
+          document.getElementById("novoPermStatus").checked;
+        const permRel =
+          document.getElementById("novoPermRelatorio").checked;
+        const permUsuarios =
+          document.getElementById("novoPermGerUsuarios").checked;
+
+        if (!username || !senha || !nome || !perfil) {
+          alert("Preencha todos os campos do novo usuário.");
+          return;
+        }
+        if (/\s/.test(username)) {
+          alert("O usuário não pode conter espaços.");
+          return;
+        }
+
+        const ref = doc(db, "usuarios", username);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          alert("Já existe um usuário com esse identificador.");
+          return;
+        }
+
+        const novoUsuario = {
+          nome,
+          perfil,
+          senha,
+          ativo: true,
+          permissoes: {
+            podeRegistrarAtendimento: permReg,
+            podeAlterarStatus: permStatus,
+            podeGerarRelatorio: permRel,
+            podeGerenciarUsuarios: permUsuarios
+          }
+        };
+
+        await setDoc(ref, novoUsuario);
+
+        document.getElementById("formNovoUsuario").reset();
+        document.getElementById("novoPermRegistrar").checked = true;
+        document.getElementById("novoPermStatus").checked = true;
+        document.getElementById("novoPermRelatorio").checked = true;
+        document.getElementById("novoPermGerUsuarios").checked = false;
+      });
+
+    // Gestão de usuários: salvar alterações por linha (delegação)
+    document
+      .getElementById("tbodyUsuarios")
+      .addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-username]");
+        if (!btn) return;
+        if (!usuarioLogado?.permissoes?.podeGerenciarUsuarios) {
+          alert("Você não tem permissão para gerenciar usuários.");
+          return;
+        }
+        const username = btn.dataset.username;
+        const nome = document.getElementById(`nome-${username}`).value;
+        const perfil = document.getElementById(`perfil-${username}`).value;
+        const ativo = document.getElementById(
+          `ativo-${username}`
+        ).checked;
+        const permReg = document.getElementById(
+          `permReg-${username}`
+        ).checked;
+        const permStatus = document.getElementById(
+          `permStatus-${username}`
+        ).checked;
+        const permRel = document.getElementById(
+          `permRel-${username}`
+        ).checked;
+        const permUsuarios = document.getElementById(
+          `permUsuarios-${username}`
+        ).checked;
+
+        const ref = doc(db, "usuarios", username);
+        await updateDoc(ref, {
+          nome,
+          perfil,
+          ativo,
+          permissoes: {
+            podeRegistrarAtendimento: permReg,
+            podeAlterarStatus: permStatus,
+            podeGerarRelatorio: permRel,
+            podeGerenciarUsuarios: permUsuarios
+          }
+        });
+
+        if (usuarioLogado.username === username) {
+          // Se o usuário editou a si mesmo, atualizar o estado local
+          usuarioLogado.perfil = perfil;
+          usuarioLogado.permissoes = {
+            podeRegistrarAtendimento: permReg,
+            podeAlterarStatus: permStatus,
+            podeGerarRelatorio: permRel,
+            podeGerenciarUsuarios: permUsuarios
+          };
+          atualizarHeaderUsuario();
+          aplicarPermissoesUI();
+        }
+
+        alert("Usuário atualizado com sucesso.");
+      });
+  });
+</script>
+</body>
+</html>
